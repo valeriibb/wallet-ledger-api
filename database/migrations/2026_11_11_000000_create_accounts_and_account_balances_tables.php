@@ -20,6 +20,7 @@ return new class extends Migration
             $table->timestampTz('created_at')->useCurrent();
 
             $table->index('owner_id');
+            $table->unique(['id', 'currency'], 'accounts_id_currency_unique');
         });
 
         DB::statement(<<<'SQL'

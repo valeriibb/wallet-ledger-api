@@ -6,7 +6,8 @@
 - Фаза 0, крок 0.3 — завершено.
 - Фаза 0, крок 0.4 — завершено; Фаза 0 повністю завершена.
 - Фаза 1, крок 1.1 — завершено.
-- Фаза 1, крок 1.2 — у роботі: accounts і account_balances готові; ledger tables ще попереду.
+- Фаза 1, крок 1.2 — завершено.
+- Наступний крок: 1.3 — доменні `Posting` і `JournalEntry`, що перевіряють баланс проводок.
 - Створено окремий Git-репозиторій і базову структуру документації.
 - `PLAN.md` містить майстер-план.
 - `AGENTS.md` містить правила роботи та опис продукту з розділів 0 і 1 плану.
@@ -42,6 +43,10 @@
 - Додано PostgreSQL migration для `accounts` і `account_balances`: FK, partial unique index на гаманець користувача/валюту, CHECK constraints і trigger, що забороняє user wallet дозволяти відʼємний баланс.
 - Додано PostgreSQL integration tests на UUIDv7, унікальність гаманця та правила відʼємного балансу; перевірки: PHPUnit — 30 тестів, 145 338 assertions; PHPStan max — 0 помилок; Pint — 35 файлів.
 - Після виправлення повторного створення PostgreSQL trigger function CI пройшов повністю на PostgreSQL 18.6 (GitHub Actions run 43020780302).
+- Додано `ledger_transactions` і `ledger_entries` з UUID, FK, JSONB metadata, timestamptz і індексами для виписок.
+- Додано CHECK constraints для типу/статусу транзакції, напрямку, додатної суми та валюти; composite FK гарантує, що валюта проводки збігається з валютою рахунку.
+- PostgreSQL trigger забороняє UPDATE, DELETE і TRUNCATE у `ledger_entries`; виправлення мають виконуватися новою reversal-транзакцією.
+- Повні локальні перевірки схеми: PHPUnit — 37 тестів, 145 348 assertions; PHPStan max — 0 помилок; Pint — 37 файлів.
 
 ## Версії
 - PHP 8.4
