@@ -4,7 +4,8 @@
 - Фаза 0, крок 0.1 — завершено.
 - Фаза 0, крок 0.2 — завершено.
 - Фаза 0, крок 0.3 — завершено.
-- Наступний крок: 0.4 — GitHub Actions для Pint, PHPStan і PHPUnit з PostgreSQL service.
+- Фаза 0, крок 0.4 — завершено; Фаза 0 повністю завершена.
+- Наступний крок: 1.1 — `Money` і `Currency` value objects.
 - Створено окремий Git-репозиторій і базову структуру документації.
 - `PLAN.md` містить майстер-план.
 - `AGENTS.md` містить правила роботи та опис продукту з розділів 0 і 1 плану.
@@ -30,6 +31,9 @@
 - Замість `assertTrue(true)` додано unit test, який перевіряє приховування password під час серіалізації `User`.
 - Додано architecture test, який забороняє залежності Domain layer від `Illuminate`, `Laravel` і `Symfony`; suite зареєстровано у `phpunit.xml`.
 - Перевірки успішні: Pint — 27 файлів, PHPStan — 0 помилок, PHPUnit — 3 тести та 4 assertions.
+- Створено приватний GitHub-репозиторій `valeriibb/wallet-ledger-api` і запушено гілку `main`.
+- Додано GitHub Actions pipeline на Ubuntu 24.04: Composer install → Pint → PHPStan → PostgreSQL migrations → PHPUnit.
+- Перший GitHub Actions run успішно пройшов усі кроки на PostgreSQL 18.6 за 33 секунди.
 
 ## Версії
 - PHP 8.4

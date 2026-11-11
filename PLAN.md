@@ -356,7 +356,7 @@ Body: { from_account_id, to_account_id, amount, currency, reference? }
 - [x] 0.1 Репозиторій, структура, `PLAN.md`, `AGENTS.md`, `docs/PROGRESS.md`, `docs/adr/`.
 - [x] 0.2 Docker Compose: php-fpm, nginx, postgres, redis, mailpit. `make up/down/test/lint`.
 - [x] 0.3 Laravel skeleton, strict types, Pint, Larastan (max), архітектурні тести-заглушки.
-- [ ] 0.4 GitHub Actions: lint → static analysis → tests (на Postgres service).
+- [x] 0.4 GitHub Actions: lint → static analysis → tests (на Postgres service).
 - **DoD:** `make test` зелений локально й в CI; PHPStan max без baseline.
 
 ### Фаза 1 — Money і Ledger core (1 тиждень)
