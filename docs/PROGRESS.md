@@ -5,7 +5,8 @@
 - Фаза 0, крок 0.2 — завершено.
 - Фаза 0, крок 0.3 — завершено.
 - Фаза 0, крок 0.4 — завершено; Фаза 0 повністю завершена.
-- Наступний крок: 1.1 — `Money` і `Currency` value objects.
+- Фаза 1, крок 1.1 — завершено.
+- Наступний крок: 1.2 — PostgreSQL migrations для accounts і ledger.
 - Створено окремий Git-репозиторій і базову структуру документації.
 - `PLAN.md` містить майстер-план.
 - `AGENTS.md` містить правила роботи та опис продукту з розділів 0 і 1 плану.
@@ -34,6 +35,9 @@
 - Створено приватний GitHub-репозиторій `valeriibb/wallet-ledger-api` і запушено гілку `main`.
 - Додано GitHub Actions pipeline на Ubuntu 24.04: Composer install → Pint → PHPStan → PostgreSQL migrations → PHPUnit.
 - Перший GitHub Actions run успішно пройшов усі кроки на PostgreSQL 18.6 за 33 секунди.
+- Реалізовано immutable `Currency` і `Money` value objects без Laravel-залежностей: валідація коду, integer minor units, перевірка валюти, арифметика, overflow protection і розподіл залишку.
+- Додано property test для allocation: 10 020 комбінацій перевіряють збереження суми, кількості частин, рівномірність і валюту.
+- Перевірки Money/Currency пройшли: PHPUnit — 25 тестів, 145 331 assertions; PHPStan max — 0 помилок; Pint — 33 файли.
 
 ## Версії
 - PHP 8.4
