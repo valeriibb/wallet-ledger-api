@@ -62,6 +62,15 @@ final class MoneyTest extends TestCase
     }
 
     #[Test]
+    public function subtraction_can_result_in_zero(): void
+    {
+        $result = Money::ofMinor(250, $this->usd)->subtract(Money::ofMinor(250, $this->usd));
+
+        self::assertSame(0, $result->minorAmount());
+        self::assertTrue($this->usd->equals($result->currency()));
+    }
+
+    #[Test]
     public function arithmetic_does_not_modify_the_original_values(): void
     {
         $left = Money::ofMinor(700, $this->usd);
@@ -85,6 +94,17 @@ final class MoneyTest extends TestCase
     }
 
     #[Test]
+    public function it_rejects_subtraction_with_different_currencies(): void
+    {
+        $this->expectException(CurrencyMismatch::class);
+        $this->expectExceptionMessage('Cannot calculate money in USD and EUR.');
+
+        Money::ofMinor(100, $this->usd)->subtract(
+            Money::ofMinor(1, Currency::fromCode('EUR')),
+        );
+    }
+
+    #[Test]
     public function subtraction_cannot_produce_a_negative_amount(): void
     {
         $this->expectException(InvalidArgumentException::class);
@@ -100,6 +120,14 @@ final class MoneyTest extends TestCase
         $this->expectExceptionMessage('Money addition exceeds the integer limit.');
 
         Money::ofMinor(PHP_INT_MAX, $this->usd)->add(Money::ofMinor(1, $this->usd));
+    }
+
+    #[Test]
+    public function addition_can_reach_the_integer_limit_without_overflow(): void
+    {
+        $result = Money::ofMinor(PHP_INT_MAX - 1, $this->usd)->add(Money::ofMinor(1, $this->usd));
+
+        self::assertSame(PHP_INT_MAX, $result->minorAmount());
     }
 
     #[Test]

@@ -50,7 +50,7 @@ jobs:
         with:
           php-version: '8.4'
           extensions: bcmath, intl, pcntl, pdo_pgsql, redis, zip
-          coverage: none
+          coverage: pcov
 
       - name: Install Composer dependencies
         run: composer install --no-interaction --no-progress --prefer-dist
@@ -71,3 +71,6 @@ jobs:
 
       - name: Run tests
         run: php artisan test
+
+      - name: Check Money mutation score
+        run: ./vendor/bin/infection --min-msi=80 --threads=1

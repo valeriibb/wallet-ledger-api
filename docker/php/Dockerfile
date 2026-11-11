@@ -23,6 +23,17 @@ RUN apk add --no-cache \
     && docker-php-ext-enable redis \
     && apk del .build-dependencies
 
+ARG WITH_PCOV=0
+
+RUN if [ "$WITH_PCOV" = "1" ]; then \
+        apk add --no-cache --virtual .pcov-build-dependencies $PHPIZE_DEPS \
+        && wget -q https://pecl.php.net/get/pcov-1.0.12.tgz -O /tmp/pcov.tgz \
+        && pecl install /tmp/pcov.tgz \
+        && docker-php-ext-enable pcov \
+        && apk del .pcov-build-dependencies \
+        && rm -f /tmp/pcov.tgz; \
+    fi
+
 COPY --from=composer /usr/bin/composer /usr/bin/composer
 
 WORKDIR /var/www/html

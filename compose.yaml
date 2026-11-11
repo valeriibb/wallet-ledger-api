@@ -3,6 +3,8 @@ services:
     build:
       context: .
       dockerfile: docker/php/Dockerfile
+      args:
+        WITH_PCOV: "1"
     working_dir: /var/www/html
     volumes:
       - .:/var/www/html

@@ -1,4 +1,4 @@
-.PHONY: up down test lint analyse
+.PHONY: up down test lint analyse mutate
 
 up:
 	docker compose up -d
@@ -14,3 +14,6 @@ lint:
 
 analyse:
 	docker compose exec php ./vendor/bin/phpstan analyse --memory-limit=1G
+
+mutate:
+	docker compose exec php ./vendor/bin/infection --min-msi=80 --threads=1

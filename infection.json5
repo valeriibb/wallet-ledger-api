@@ -1,0 +1,13 @@
+{
+    "source": {
+        "directories": ["app/Domain/Shared/ValueObject"],
+        "excludes": ["Currency.php"]
+    },
+    "timeout": 15,
+    "threads": 1,
+    "logs": {
+        "text": "storage/logs/infection.log",
+        "summary": "storage/logs/infection-summary.log"
+    },
+    "initialTestsPhpOptions": "-d pcov.enabled=1"
+}
