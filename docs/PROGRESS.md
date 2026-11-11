@@ -41,6 +41,7 @@
 - Для фази 1.2 приведено starter `users.id` і `sessions.user_id` до UUID; Eloquent `User` генерує UUIDv7 через `HasUuids`.
 - Додано PostgreSQL migration для `accounts` і `account_balances`: FK, partial unique index на гаманець користувача/валюту, CHECK constraints і trigger, що забороняє user wallet дозволяти відʼємний баланс.
 - Додано PostgreSQL integration tests на UUIDv7, унікальність гаманця та правила відʼємного балансу; перевірки: PHPUnit — 30 тестів, 145 338 assertions; PHPStan max — 0 помилок; Pint — 35 файлів.
+- Після виправлення повторного створення PostgreSQL trigger function CI пройшов повністю на PostgreSQL 18.6 (GitHub Actions run 43020780302).
 
 ## Версії
 - PHP 8.4
