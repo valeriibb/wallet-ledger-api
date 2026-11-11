@@ -9,7 +9,14 @@
 - Фаза 1, крок 1.2 — завершено.
 - Фаза 1, кроки 1.3–1.5 — завершено.
 - Фаза 1 повністю завершена: кроки 1.1–1.5 виконано, DoD перевірено.
-- Наступний крок: 2.1 — реєстрація, login через Sanctum, roles і policies.
+- Фаза 2, крок 2.1 — завершено: Sanctum registration/login, ролі та account ownership policy реалізовано й перевірено.
+- Наступний крок: 2.2 — відкриття рахунків, баланс і виписка з cursor pagination.
+- Фаза 2, крок 2.2 — завершено: відкриття і список рахунків, balance endpoint та statement з cursor pagination реалізовані.
+- Фаза 2, крок 2.3 — завершено: RFC 9457 Problem Details і request-id middleware реалізовані та перевірені.
+- Фаза 2 повністю завершена: усі identity/account endpoint-и описані в OpenAPI 3.1, authorization та error contract покриті тестами.
+- Фаза 3, крок 3.1 — завершено: `TransferFunds` атомарно блокує рахунки й баланси у deterministic UUID order, перевіряє доменні правила та створює balanced ledger posting.
+- Фаза 3, крок 3.2 — завершено: PostgreSQL `40001`/`40P01` отримали bounded retry з exponential backoff і jitter; інші помилки не повторюються.
+- Наступний крок: 3.3 — реальні PostgreSQL concurrency scenarios з паралельними процесами.
 - Створено окремий Git-репозиторій і базову структуру документації.
 - `PLAN.md` містить майстер-план.
 - `AGENTS.md` містить правила роботи та опис продукту з розділів 0 і 1 плану.
@@ -57,6 +64,39 @@
 - Крок 1.5 вже покритий PostgreSQL integration tests у `LedgerSchemaTest`: UPDATE, DELETE і TRUNCATE ledger entries відхиляються тригерами.
 - Додано Infection 0.35.10 і PCOV 1.0.12, конфігурацію для мутацій лише `Money`, команду `make mutate` і перевірку порогу MSI 80% у CI.
 - Money mutation run: 47/47 mutants killed; mutation code coverage — 100%, covered MSI — 100%.
+- Встановлено Laravel Sanctum 4.4.0 через `php artisan install:api`; Composer lock оновлено.
+- Додано API routing, конфігурацію Sanctum і migration `personal_access_tokens`; `User` підключено до `HasApiTokens`.
+- До згенерованих PHP-файлів вручну додано `strict_types=1` відповідно до правила проєкту.
+- Додано `POST /v1/auth/register` і `POST /v1/auth/login`: перевірку полів, нормалізацію email, хешування через `User` hashed cast, видачу Sanctum bearer token і загальну помилку для неправильних credentials.
+- Credential verification і видачу токенів винесено в application `IdentityService`; HTTP controller формує лише API-відповіді.
+- Додано Problem Details для помилок валідації, а login обмежено п'ятьма невдалими спробами на хвилину для комбінації IP та email.
+- Додано `UserRole` (`user`, `admin`, `service`) як PHP enum і PostgreSQL CHECK constraint; роль за замовчуванням `user`, поле не можна передати через масове заповнення під час реєстрації.
+- Додано `Account` model і зареєстровано `AccountPolicy`: `view` і `debit` дозволені лише ролі `user` для її власного `user_wallet`; admin не отримує автоматичного обходу ownership check.
+- Policy ще не викликається account endpoint-ами/use-case-ами, яких поки немає; це буде підключено в кроці 2.2. Admin-specific permissions залишаються до відповідних admin endpoint-ів.
+- Виправлено несумісність Sanctum із UUID users: `personal_access_tokens.tokenable_id` тепер UUID через `uuidMorphs`, а не згенерований за замовчуванням BIGINT.
+- Значення ролі `user` синхронізовано між PostgreSQL default, Eloquent model і factory, щоб новий model одразу мав правильний enum без повторного читання з БД.
+- Додано HTTP-тести registration/login, password/token hashing, generic credential error, bearer authentication і Redis login throttling; policy-тести ownership/admin/frozen-state separation та integration test PostgreSQL role constraint.
+- Повний suite після кроку 2.1: 58 тестів, 145 410 assertions.
+- Для кроку 2.2 додано `AccountStore` port, `PostgresAccountStore` adapter та application service `OpenAccount`; adapter атомарно створює `accounts` і `account_balances` в одній PostgreSQL transaction.
+- `POST /v1/accounts` захищено Sanctum і class-level policy; тільки роль `user` може відкрити wallet, currency проходить boundary validation і `Currency` value object.
+- Конкурентний duplicate захищає partial unique index; PostgreSQL SQLSTATE `23505` для конкретного constraint перетворюється на HTTP 409, без небезпечного check-then-insert як гарантії.
+- Focused account-opening suite: 5 тестів, 19 assertions; PHPStan max і Pint проходять.
+- Додано `GET /v1/accounts` з owner filter безпосередньо в SQL і `GET /v1/accounts/{account}/balance` з object-level authorization через `AccountPolicy`.
+- Додано `GET /v1/accounts/{account}/entries` з cursor pagination у стабільному порядку `created_at DESC, id DESC`, limit 1–100 та відхиленням пошкодженого cursor.
+- Statement cursor тести перевіряють дві сторінки без duplicate/missing entries; окремо перевірено заборону читання чужого balance і statement.
+- Повний suite після кроку 2.2: 70 тестів, 145 454 assertions.
+- Навчальний протокол уточнено після відгуку учня: спершу сценарій і принцип, типова помилка, компроміси та архітектурний зв'язок; питання — після завершення теми, без вимоги повторно просити «go».
+- Додано централізований `ProblemDetails` response builder за RFC 9457: `type`, `title`, `status`, `detail`, `instance`, `request_id`; validation errors розширюють contract полем `errors`.
+- Додано глобальний request-id middleware: валідний клієнтський UUID приймається й нормалізується, невалідне значення замінюється UUIDv7, `X-Request-Id` повертається для успішних і помилкових відповідей.
+- Authentication, authorization, model/route not found, method not allowed, conflict, validation і rate-limit errors використовують `application/problem+json` без витоку framework details.
+- Додано `docs/openapi.json` у форматі OpenAPI 3.1 для всіх Phase 2 endpoint-ів та architecture contract test, який перевіряє операції й Problem Details schema.
+- Повні перевірки після Phase 2: PHPUnit — 76 тестів, 145 544 assertions; PHPStan max — 0 помилок; Pint — 87 файлів; Composer schema — valid.
+- Додано `POST /v1/transfers`, `TransferFunds` application service, `TransferStore` port і `PostgresTransferStore` adapter; endpoint задокументовано в OpenAPI 3.1.
+- `CreateTransferPosting` у Domain перевіряє різні рахунки, active status, user-wallet type і однакову currency, після чого створює debit/credit posting.
+- Source ownership перевіряється policy на HTTP boundary і повторно під lock у transaction; frozen state та currency перевіряються на locked database state для захисту від TOCTOU.
+- Existing `LedgerStore` перевикористовується всередині outer transfer transaction; reference зберігається в `ledger_transactions`, а будь-яка помилка відкочує transaction, entries і обидва balances.
+- Додано `PostgresConcurrencyRetrier`: максимум 3 спроби лише для SQLSTATE `40001`/`40P01`, exponential backoff 25/50 ms та jitter; unit test підтверджує retry і fail-fast для звичайної помилки.
+- Повні перевірки після кроків 3.1–3.2: PHPUnit — 82 тести, 145 574 assertions; PHPStan max — 0 помилок; Pint — 101 файл.
 
 ## Версії
 - PHP 8.4
@@ -64,7 +104,7 @@
 - PostgreSQL 18.x
 
 ## Відкладено
-- Решта roadmap після фази 1 ще не починалася.
+- Кроки 3.3–3.4 та фази 4–9 roadmap ще не починалися.
 - Docker Desktop на цьому Mac: 4.99.0; Docker Engine: 29.9.3; Docker Compose: v5.7.0.
 
 ## Відкриті питання

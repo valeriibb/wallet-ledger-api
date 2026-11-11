@@ -1,0 +1,444 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Wallet & Ledger API",
+    "version": "0.2.0",
+    "description": "Identity and wallet account endpoints. Money values are integer minor units."
+  },
+  "servers": [
+    { "url": "http://127.0.0.1:8080" }
+  ],
+  "paths": {
+    "/v1/auth/register": {
+      "post": {
+        "operationId": "register",
+        "tags": ["Identity"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/RegisterRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Registered",
+            "headers": { "X-Request-Id": { "$ref": "#/components/headers/RequestId" } },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/TokenGrant" }
+              }
+            }
+          },
+          "422": { "$ref": "#/components/responses/ValidationProblem" }
+        }
+      }
+    },
+    "/v1/auth/login": {
+      "post": {
+        "operationId": "login",
+        "tags": ["Identity"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/LoginRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authenticated",
+            "headers": { "X-Request-Id": { "$ref": "#/components/headers/RequestId" } },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/TokenGrant" }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Problem" },
+          "422": { "$ref": "#/components/responses/ValidationProblem" },
+          "429": { "$ref": "#/components/responses/Problem" }
+        }
+      }
+    },
+    "/v1/user": {
+      "get": {
+        "operationId": "currentUser",
+        "tags": ["Identity"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Current user",
+            "headers": { "X-Request-Id": { "$ref": "#/components/headers/RequestId" } },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/User" }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Problem" }
+        }
+      }
+    },
+    "/v1/accounts": {
+      "get": {
+        "operationId": "listAccounts",
+        "tags": ["Accounts"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "The current user's wallets",
+            "headers": { "X-Request-Id": { "$ref": "#/components/headers/RequestId" } },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["data"],
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/Account" }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Problem" },
+          "403": { "$ref": "#/components/responses/Problem" }
+        }
+      },
+      "post": {
+        "operationId": "openAccount",
+        "tags": ["Accounts"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/OpenAccountRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Wallet opened",
+            "headers": { "X-Request-Id": { "$ref": "#/components/headers/RequestId" } },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["data"],
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/OpenedAccount" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Problem" },
+          "403": { "$ref": "#/components/responses/Problem" },
+          "409": { "$ref": "#/components/responses/Problem" },
+          "422": { "$ref": "#/components/responses/ValidationProblem" }
+        }
+      }
+    },
+    "/v1/accounts/{account}/balance": {
+      "get": {
+        "operationId": "getAccountBalance",
+        "tags": ["Accounts"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/AccountId" }],
+        "responses": {
+          "200": {
+            "description": "Current cached balance",
+            "headers": { "X-Request-Id": { "$ref": "#/components/headers/RequestId" } },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["data"],
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/AccountBalance" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Problem" },
+          "403": { "$ref": "#/components/responses/Problem" },
+          "404": { "$ref": "#/components/responses/Problem" }
+        }
+      }
+    },
+    "/v1/accounts/{account}/entries": {
+      "get": {
+        "operationId": "getAccountStatement",
+        "tags": ["Accounts"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "$ref": "#/components/parameters/AccountId" },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": { "type": "integer", "minimum": 1, "maximum": 100, "default": 20 }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A cursor page in newest-first order",
+            "headers": { "X-Request-Id": { "$ref": "#/components/headers/RequestId" } },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/StatementPage" }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Problem" },
+          "403": { "$ref": "#/components/responses/Problem" },
+          "404": { "$ref": "#/components/responses/Problem" },
+          "422": { "$ref": "#/components/responses/ValidationProblem" }
+        }
+      }
+    },
+    "/v1/transfers": {
+      "post": {
+        "operationId": "transferFunds",
+        "tags": ["Transfers"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/TransferRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Transfer posted",
+            "headers": { "X-Request-Id": { "$ref": "#/components/headers/RequestId" } },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["data"],
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/PostedTransfer" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Problem" },
+          "403": { "$ref": "#/components/responses/Problem" },
+          "404": { "$ref": "#/components/responses/Problem" },
+          "422": { "$ref": "#/components/responses/ValidationProblem" }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "Sanctum token"
+      }
+    },
+    "headers": {
+      "RequestId": {
+        "description": "UUID used to correlate this request",
+        "schema": { "type": "string", "format": "uuid" }
+      }
+    },
+    "parameters": {
+      "AccountId": {
+        "name": "account",
+        "in": "path",
+        "required": true,
+        "schema": { "type": "string", "format": "uuid" }
+      }
+    },
+    "responses": {
+      "Problem": {
+        "description": "Problem Details error",
+        "headers": { "X-Request-Id": { "$ref": "#/components/headers/RequestId" } },
+        "content": {
+          "application/problem+json": {
+            "schema": { "$ref": "#/components/schemas/ProblemDetails" }
+          }
+        }
+      },
+      "ValidationProblem": {
+        "description": "Request validation failed",
+        "headers": { "X-Request-Id": { "$ref": "#/components/headers/RequestId" } },
+        "content": {
+          "application/problem+json": {
+            "schema": { "$ref": "#/components/schemas/ValidationProblemDetails" }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "RegisterRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "email", "password", "password_confirmation"],
+        "properties": {
+          "name": { "type": "string", "maxLength": 255 },
+          "email": { "type": "string", "format": "email", "maxLength": 255 },
+          "password": { "type": "string", "format": "password" },
+          "password_confirmation": { "type": "string", "format": "password" }
+        }
+      },
+      "LoginRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["email", "password"],
+        "properties": {
+          "email": { "type": "string", "format": "email" },
+          "password": { "type": "string", "format": "password" }
+        }
+      },
+      "OpenAccountRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["currency"],
+        "properties": {
+          "currency": { "type": "string", "pattern": "^[A-Z]{3}$", "examples": ["USD"] }
+        }
+      },
+      "TransferRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["from_account_id", "to_account_id", "amount", "currency"],
+        "properties": {
+          "from_account_id": { "type": "string", "format": "uuid" },
+          "to_account_id": { "type": "string", "format": "uuid" },
+          "amount": { "type": "integer", "minimum": 1, "description": "Minor units" },
+          "currency": { "type": "string", "pattern": "^[A-Z]{3}$" },
+          "reference": { "type": ["string", "null"], "maxLength": 255 }
+        }
+      },
+      "User": {
+        "type": "object",
+        "required": ["id", "name", "email"],
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "name": { "type": "string" },
+          "email": { "type": "string", "format": "email" },
+          "role": { "type": "string", "enum": ["user", "admin", "service"] }
+        }
+      },
+      "TokenGrant": {
+        "type": "object",
+        "required": ["data", "token"],
+        "properties": {
+          "data": { "$ref": "#/components/schemas/User" },
+          "token": { "type": "string" }
+        }
+      },
+      "Account": {
+        "type": "object",
+        "required": ["id", "type", "currency", "status"],
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "type": { "type": "string", "const": "user_wallet" },
+          "currency": { "type": "string", "pattern": "^[A-Z]{3}$" },
+          "status": { "type": "string", "enum": ["active", "frozen", "closed"] }
+        }
+      },
+      "OpenedAccount": {
+        "allOf": [
+          { "$ref": "#/components/schemas/Account" },
+          {
+            "type": "object",
+            "required": ["balance"],
+            "properties": { "balance": { "type": "integer", "description": "Minor units" } }
+          }
+        ]
+      },
+      "AccountBalance": {
+        "type": "object",
+        "required": ["account_id", "currency", "balance"],
+        "properties": {
+          "account_id": { "type": "string", "format": "uuid" },
+          "currency": { "type": "string", "pattern": "^[A-Z]{3}$" },
+          "balance": { "type": "integer", "description": "Minor units" }
+        }
+      },
+      "StatementEntry": {
+        "type": "object",
+        "required": ["id", "transaction_id", "direction", "amount", "currency", "balance_after", "created_at"],
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "transaction_id": { "type": "string", "format": "uuid" },
+          "direction": { "type": "string", "enum": ["debit", "credit"] },
+          "amount": { "type": "integer", "minimum": 1, "description": "Minor units" },
+          "currency": { "type": "string", "pattern": "^[A-Z]{3}$" },
+          "balance_after": { "type": "integer", "description": "Minor units" },
+          "created_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "StatementPage": {
+        "type": "object",
+        "required": ["data", "meta"],
+        "properties": {
+          "data": { "type": "array", "items": { "$ref": "#/components/schemas/StatementEntry" } },
+          "meta": {
+            "type": "object",
+            "required": ["next_cursor"],
+            "properties": { "next_cursor": { "type": ["string", "null"] } }
+          }
+        }
+      },
+      "PostedTransfer": {
+        "type": "object",
+        "required": ["transaction_id", "from_account_id", "to_account_id", "amount", "currency", "status"],
+        "properties": {
+          "transaction_id": { "type": "string", "format": "uuid" },
+          "from_account_id": { "type": "string", "format": "uuid" },
+          "to_account_id": { "type": "string", "format": "uuid" },
+          "amount": { "type": "integer", "minimum": 1, "description": "Minor units" },
+          "currency": { "type": "string", "pattern": "^[A-Z]{3}$" },
+          "status": { "type": "string", "const": "posted" }
+        }
+      },
+      "ProblemDetails": {
+        "type": "object",
+        "required": ["type", "title", "status", "detail", "instance", "request_id"],
+        "properties": {
+          "type": { "type": "string", "format": "uri-reference" },
+          "title": { "type": "string" },
+          "status": { "type": "integer", "minimum": 400, "maximum": 599 },
+          "detail": { "type": "string" },
+          "instance": { "type": "string", "format": "uri-reference" },
+          "request_id": { "type": "string", "format": "uuid" }
+        }
+      },
+      "ValidationProblemDetails": {
+        "allOf": [
+          { "$ref": "#/components/schemas/ProblemDetails" },
+          {
+            "type": "object",
+            "required": ["errors"],
+            "properties": {
+              "errors": {
+                "type": "object",
+                "additionalProperties": { "type": "array", "items": { "type": "string" } }
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}
