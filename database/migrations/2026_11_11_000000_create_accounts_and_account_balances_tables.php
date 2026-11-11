@@ -73,7 +73,7 @@ return new class extends Migration
         SQL);
 
         DB::statement(<<<'SQL'
-            CREATE FUNCTION enforce_account_balance_policy()
+            CREATE OR REPLACE FUNCTION enforce_account_balance_policy()
             RETURNS trigger
             LANGUAGE plpgsql
             AS $$
