@@ -362,7 +362,7 @@ Body: { from_account_id, to_account_id, amount, currency, reference? }
 ### Фаза 1 — Money і Ledger core (1 тиждень)
 - [x] 1.1 `Money` + `Currency` value objects (integer, перевірки, арифметика, ділення з розподілом залишку). Unit + property tests.
 - [x] 1.2 Міграції: accounts, account_balances, ledger_transactions, ledger_entries, тригер-імутабельність, CHECK-обмеження.
-- [ ] 1.3 Домен Ledger: `Posting`, `JournalEntry`, перевірка балансу проводок (I1).
+- [x] 1.3 Домен Ledger: `Posting`, `JournalEntry`, перевірка балансу проводок (I1).
 - [ ] 1.4 Сервіс постингу в БД (один репозиторій-порт `LedgerStore`), оновлення `account_balances`.
 - [ ] 1.5 Тест на спробу `UPDATE/DELETE` entries → падає.
 - **DoD:** можна програмно провести проводку; I1–I3, I8 покриті тестами; mutation score по Money ≥ 80%.
