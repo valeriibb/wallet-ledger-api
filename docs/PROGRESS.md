@@ -6,7 +6,7 @@
 - Фаза 0, крок 0.3 — завершено.
 - Фаза 0, крок 0.4 — завершено; Фаза 0 повністю завершена.
 - Фаза 1, крок 1.1 — завершено.
-- Наступний крок: 1.2 — PostgreSQL migrations для accounts і ledger.
+- Фаза 1, крок 1.2 — у роботі: accounts і account_balances готові; ledger tables ще попереду.
 - Створено окремий Git-репозиторій і базову структуру документації.
 - `PLAN.md` містить майстер-план.
 - `AGENTS.md` містить правила роботи та опис продукту з розділів 0 і 1 плану.
@@ -38,6 +38,9 @@
 - Реалізовано immutable `Currency` і `Money` value objects без Laravel-залежностей: валідація коду, integer minor units, перевірка валюти, арифметика, overflow protection і розподіл залишку.
 - Додано property test для allocation: 10 020 комбінацій перевіряють збереження суми, кількості частин, рівномірність і валюту.
 - Перевірки Money/Currency пройшли: PHPUnit — 25 тестів, 145 331 assertions; PHPStan max — 0 помилок; Pint — 33 файли.
+- Для фази 1.2 приведено starter `users.id` і `sessions.user_id` до UUID; Eloquent `User` генерує UUIDv7 через `HasUuids`.
+- Додано PostgreSQL migration для `accounts` і `account_balances`: FK, partial unique index на гаманець користувача/валюту, CHECK constraints і trigger, що забороняє user wallet дозволяти відʼємний баланс.
+- Додано PostgreSQL integration tests на UUIDv7, унікальність гаманця та правила відʼємного балансу; перевірки: PHPUnit — 30 тестів, 145 338 assertions; PHPStan max — 0 помилок; Pint — 35 файлів.
 
 ## Версії
 - PHP 8.4
