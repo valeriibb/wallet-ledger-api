@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Concurrency;
 
+use App\Application\Idempotency\Port\IdempotencyExecutor;
+use App\Application\Idempotency\StoredResponse;
 use App\Application\Transfer\TransferFunds;
 use App\Domain\Ledger\Exception\InsufficientFunds;
 use App\Domain\Shared\ValueObject\Currency;
@@ -98,6 +100,69 @@ final class TransferConcurrencyTest extends TestCase
         self::assertSame(1000, $this->balance($bobAccountId));
         self::assertSame(2000, $this->balance($aliceAccountId) + $this->balance($bobAccountId));
         self::assertSame(500, $this->entryCount([$aliceAccountId, $bobAccountId]) / 2);
+    }
+
+    #[Test]
+    public function twenty_requests_with_one_idempotency_key_create_one_transfer(): void
+    {
+        $sender = User::factory()->create();
+        $recipient = User::factory()->create();
+        $sourceId = $this->createWallet($sender, 1000);
+        $destinationId = $this->createWallet($recipient, 0);
+        $key = (string) Str::uuid();
+        $requestHash = hash('sha256', 'same-transfer-request');
+        $jobs = range(1, 20);
+
+        $results = (new ParallelProcessRunner)->run(
+            $jobs,
+            self::WORKERS,
+            static function (int $_job) use (
+                $sender,
+                $sourceId,
+                $destinationId,
+                $key,
+                $requestHash,
+            ): string {
+                try {
+                    $result = app(IdempotencyExecutor::class)->execute(
+                        $sender->id,
+                        $key,
+                        $requestHash,
+                        static function () use ($sender, $sourceId, $destinationId): StoredResponse {
+                            $transfer = app(TransferFunds::class)->execute(
+                                $sender->id,
+                                $sourceId,
+                                $destinationId,
+                                Money::ofMinor(100, Currency::fromCode('USD')),
+                                null,
+                            );
+
+                            return new StoredResponse(
+                                201,
+                                ['transaction_id' => $transfer->transactionId],
+                                $transfer->transactionId,
+                            );
+                        },
+                    );
+
+                    return $result->replayed ? 'replayed' : 'created';
+                } catch (Throwable $exception) {
+                    return 'error:'.$exception::class.':'.$exception->getMessage();
+                }
+            },
+        );
+
+        self::assertSame(1, $this->resultCount($results, 'created'));
+        self::assertSame(19, $this->resultCount($results, 'replayed'));
+        self::assertSame([], $this->errors($results));
+        self::assertSame(900, $this->balance($sourceId));
+        self::assertSame(100, $this->balance($destinationId));
+        self::assertSame(2, $this->entryCount([$sourceId, $destinationId]));
+        self::assertSame(1, DB::table('idempotency_keys')
+            ->where('owner_id', $sender->id)
+            ->where('key', $key)
+            ->where('status', 'completed')
+            ->count());
     }
 
     private function createWallet(User $owner, int $balance): string

@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Application\Idempotency\Exception\IdempotencyKeyReused;
+use App\Application\Idempotency\Exception\IdempotencyRequestInProgress;
+use App\Application\Idempotency\Port\IdempotencyExecutor;
+use App\Application\Idempotency\StoredResponse;
 use App\Application\Transfer\Exception\TransferAccountNotFound;
 use App\Application\Transfer\Exception\TransferNotAllowed;
 use App\Application\Transfer\TransferFunds;
@@ -22,11 +26,14 @@ use Symfony\Component\HttpFoundation\Response;
 
 final class TransferController extends Controller
 {
-    public function __construct(private readonly TransferFunds $transferFunds) {}
+    public function __construct(
+        private readonly TransferFunds $transferFunds,
+        private readonly IdempotencyExecutor $idempotency,
+    ) {}
 
     public function store(TransferFundsRequest $request): JsonResponse
     {
-        /** @var array{from_account_id: string, to_account_id: string, amount: int|string, currency: string, reference?: string|null} $data */
+        /** @var array{idempotency_key: string, from_account_id: string, to_account_id: string, amount: int|string, currency: string, reference?: string|null} $data */
         $data = $request->validated();
         $user = $request->user();
 
@@ -38,12 +45,56 @@ final class TransferController extends Controller
         Gate::authorize('debit', $source);
 
         try {
-            $result = $this->transferFunds->execute(
+            $requestHash = hash('sha256', json_encode([
+                'method' => 'POST',
+                'path' => '/v1/transfers',
+                'from_account_id' => $data['from_account_id'],
+                'to_account_id' => $data['to_account_id'],
+                'amount' => (int) $data['amount'],
+                'currency' => $data['currency'],
+                'reference' => $data['reference'] ?? null,
+            ], JSON_THROW_ON_ERROR));
+
+            $idempotencyResult = $this->idempotency->execute(
                 $user->id,
-                $data['from_account_id'],
-                $data['to_account_id'],
-                Money::ofMinor((int) $data['amount'], Currency::fromCode($data['currency'])),
-                $data['reference'] ?? null,
+                $data['idempotency_key'],
+                $requestHash,
+                function () use ($user, $data): StoredResponse {
+                    $result = $this->transferFunds->execute(
+                        $user->id,
+                        $data['from_account_id'],
+                        $data['to_account_id'],
+                        Money::ofMinor((int) $data['amount'], Currency::fromCode($data['currency'])),
+                        $data['reference'] ?? null,
+                    );
+
+                    return new StoredResponse(
+                        Response::HTTP_CREATED,
+                        ['data' => [
+                            'transaction_id' => $result->transactionId,
+                            'from_account_id' => $result->sourceAccountId,
+                            'to_account_id' => $result->destinationAccountId,
+                            'amount' => $result->amount,
+                            'currency' => $result->currency,
+                            'status' => 'posted',
+                        ]],
+                        $result->transactionId,
+                    );
+                },
+            );
+        } catch (IdempotencyKeyReused $exception) {
+            return ProblemDetails::response(
+                $request,
+                Response::HTTP_UNPROCESSABLE_ENTITY,
+                'Unprocessable Content',
+                $exception->getMessage(),
+            );
+        } catch (IdempotencyRequestInProgress $exception) {
+            return ProblemDetails::response(
+                $request,
+                Response::HTTP_CONFLICT,
+                'Conflict',
+                $exception->getMessage(),
             );
         } catch (TransferAccountNotFound) {
             return ProblemDetails::response(
@@ -75,15 +126,10 @@ final class TransferController extends Controller
             );
         }
 
-        return response()->json([
-            'data' => [
-                'transaction_id' => $result->transactionId,
-                'from_account_id' => $result->sourceAccountId,
-                'to_account_id' => $result->destinationAccountId,
-                'amount' => $result->amount,
-                'currency' => $result->currency,
-                'status' => 'posted',
-            ],
-        ], Response::HTTP_CREATED);
+        return response()->json(
+            $idempotencyResult->response->body,
+            $idempotencyResult->response->statusCode,
+            ['Idempotency-Replayed' => $idempotencyResult->replayed ? 'true' : 'false'],
+        );
     }
 }

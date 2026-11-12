@@ -25,13 +25,14 @@ final class TransferFundsTest extends TestCase
         $destinationId = $this->createWallet($recipient, 25);
         Sanctum::actingAs($sender);
 
-        $response = $this->postJson('/v1/transfers', [
-            'from_account_id' => $sourceId,
-            'to_account_id' => $destinationId,
-            'amount' => 125,
-            'currency' => 'USD',
-            'reference' => 'invoice-42',
-        ]);
+        $response = $this->withHeader('Idempotency-Key', (string) Str::uuid())
+            ->postJson('/v1/transfers', [
+                'from_account_id' => $sourceId,
+                'to_account_id' => $destinationId,
+                'amount' => 125,
+                'currency' => 'USD',
+                'reference' => 'invoice-42',
+            ]);
 
         $response
             ->assertCreated()
@@ -72,7 +73,8 @@ final class TransferFundsTest extends TestCase
         $destinationId = $this->createWallet($recipient, 0);
         Sanctum::actingAs($attacker);
 
-        $this->postJson('/v1/transfers', $this->payload($sourceId, $destinationId, 100))
+        $this->withHeader('Idempotency-Key', (string) Str::uuid())
+            ->postJson('/v1/transfers', $this->payload($sourceId, $destinationId, 100))
             ->assertForbidden();
 
         self::assertDatabaseCount('ledger_transactions', 0);
@@ -89,7 +91,8 @@ final class TransferFundsTest extends TestCase
         $frozenDestinationId = $this->createWallet($recipient, 0, status: 'frozen');
         Sanctum::actingAs($sender);
 
-        $this->postJson('/v1/transfers', $this->payload($sourceId, $frozenDestinationId, 50))
+        $this->withHeader('Idempotency-Key', (string) Str::uuid())
+            ->postJson('/v1/transfers', $this->payload($sourceId, $frozenDestinationId, 50))
             ->assertUnprocessable()
             ->assertJsonPath('detail', 'Both accounts must be active.');
 
@@ -108,7 +111,8 @@ final class TransferFundsTest extends TestCase
         $destinationId = $this->createWallet($recipient, 0);
         Sanctum::actingAs($sender);
 
-        $this->postJson('/v1/transfers', $this->payload($sourceId, $destinationId, 50))
+        $this->withHeader('Idempotency-Key', (string) Str::uuid())
+            ->postJson('/v1/transfers', $this->payload($sourceId, $destinationId, 50))
             ->assertUnprocessable()
             ->assertJsonPath('detail', 'The source account does not have enough funds.');
 
@@ -116,6 +120,112 @@ final class TransferFundsTest extends TestCase
         self::assertDatabaseCount('ledger_entries', 0);
         $this->assertBalance($sourceId, 40);
         $this->assertBalance($destinationId, 0);
+    }
+
+    #[Test]
+    public function repeating_the_same_key_and_request_replays_the_original_response(): void
+    {
+        $sender = User::factory()->create();
+        $recipient = User::factory()->create();
+        $sourceId = $this->createWallet($sender, 500);
+        $destinationId = $this->createWallet($recipient, 0);
+        $key = (string) Str::uuid();
+        $payload = $this->payload($sourceId, $destinationId, 100);
+        Sanctum::actingAs($sender);
+
+        $first = $this->withHeader('Idempotency-Key', $key)
+            ->postJson('/v1/transfers', $payload)
+            ->assertCreated()
+            ->assertHeader('Idempotency-Replayed', 'false');
+        $second = $this->withHeader('Idempotency-Key', $key)
+            ->postJson('/v1/transfers', $payload)
+            ->assertCreated()
+            ->assertHeader('Idempotency-Replayed', 'true');
+
+        self::assertEquals($first->json(), $second->json());
+        self::assertDatabaseCount('ledger_transactions', 1);
+        self::assertDatabaseCount('ledger_entries', 2);
+        $this->assertBalance($sourceId, 400, 1);
+        $this->assertBalance($destinationId, 100, 1);
+        self::assertDatabaseHas('idempotency_keys', [
+            'owner_id' => $sender->id,
+            'key' => $key,
+            'status' => 'completed',
+            'response_code' => 201,
+        ]);
+    }
+
+    #[Test]
+    public function reusing_a_key_with_a_different_request_is_rejected(): void
+    {
+        $sender = User::factory()->create();
+        $recipient = User::factory()->create();
+        $sourceId = $this->createWallet($sender, 500);
+        $destinationId = $this->createWallet($recipient, 0);
+        $key = (string) Str::uuid();
+        Sanctum::actingAs($sender);
+
+        $this->withHeader('Idempotency-Key', $key)
+            ->postJson('/v1/transfers', $this->payload($sourceId, $destinationId, 100))
+            ->assertCreated();
+
+        $this->withHeader('Idempotency-Key', $key)
+            ->postJson('/v1/transfers', $this->payload($sourceId, $destinationId, 200))
+            ->assertUnprocessable()
+            ->assertJsonPath('detail', 'The idempotency key was already used with a different request.');
+
+        self::assertDatabaseCount('ledger_transactions', 1);
+        $this->assertBalance($sourceId, 400, 1);
+        $this->assertBalance($destinationId, 100, 1);
+    }
+
+    #[Test]
+    public function an_idempotency_key_is_required_for_a_transfer(): void
+    {
+        $sender = User::factory()->create();
+        $recipient = User::factory()->create();
+        $sourceId = $this->createWallet($sender, 500);
+        $destinationId = $this->createWallet($recipient, 0);
+        Sanctum::actingAs($sender);
+
+        $this->postJson('/v1/transfers', $this->payload($sourceId, $destinationId, 100))
+            ->assertUnprocessable()
+            ->assertJsonPath('errors.idempotency_key.0', 'The idempotency key field is required.');
+
+        self::assertDatabaseCount('ledger_transactions', 0);
+    }
+
+    #[Test]
+    public function an_expired_idempotency_key_can_start_a_new_operation(): void
+    {
+        $sender = User::factory()->create();
+        $recipient = User::factory()->create();
+        $sourceId = $this->createWallet($sender, 500);
+        $destinationId = $this->createWallet($recipient, 0);
+        $key = (string) Str::uuid();
+        $payload = $this->payload($sourceId, $destinationId, 100);
+        Sanctum::actingAs($sender);
+
+        $firstTransactionId = $this->withHeader('Idempotency-Key', $key)
+            ->postJson('/v1/transfers', $payload)
+            ->assertCreated()
+            ->json('data.transaction_id');
+
+        DB::table('idempotency_keys')
+            ->where('owner_id', $sender->id)
+            ->where('key', $key)
+            ->update(['expires_at' => now()->subSecond()]);
+
+        $second = $this->withHeader('Idempotency-Key', $key)
+            ->postJson('/v1/transfers', $payload)
+            ->assertCreated()
+            ->assertHeader('Idempotency-Replayed', 'false');
+
+        self::assertNotSame($firstTransactionId, $second->json('data.transaction_id'));
+        self::assertDatabaseCount('ledger_transactions', 2);
+        self::assertDatabaseCount('ledger_entries', 4);
+        $this->assertBalance($sourceId, 300, 2);
+        $this->assertBalance($destinationId, 200, 2);
     }
 
     /** @return array{from_account_id: string, to_account_id: string, amount: int, currency: string} */
@@ -154,12 +264,12 @@ final class TransferFundsTest extends TestCase
         return $accountId;
     }
 
-    private function assertBalance(string $accountId, int $balance): void
+    private function assertBalance(string $accountId, int $balance, int $version = 0): void
     {
         self::assertDatabaseHas('account_balances', [
             'account_id' => $accountId,
             'balance' => $balance,
-            'version' => 0,
+            'version' => $version,
         ]);
     }
 }

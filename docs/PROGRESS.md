@@ -19,7 +19,9 @@
 - Фаза 3, крок 3.3 — завершено: concurrency scenarios №1–2 працюють через 20 окремих PHP processes і реальні PostgreSQL connections.
 - Фаза 3, крок 3.4 — завершено: ADR-005 фіксує `READ COMMITTED`, ordered pessimistic locks, retry strategy та alternatives.
 - Фаза 3 повністю завершена; обидва concurrency scenarios пройшли 50/50 stability runs.
-- Наступний крок: 4.1 — idempotency gate для transfer requests.
+- Фаза 4, кроки 4.1–4.2 — завершено: transfer idempotency gate, request hash, stored replay, different-body rejection, concurrency scenario №3 і TTL реалізовані.
+- Фаза 4 повністю завершена; ADR-006 фіксує atomic transaction boundary та 24-hour retention contract.
+- Наступний крок: 5.1 — системні рахунки та fake payment provider port/adapter.
 - Створено окремий Git-репозиторій і базову структуру документації.
 - `PLAN.md` містить майстер-план.
 - `AGENTS.md` містить правила роботи та опис продукту з розділів 0 і 1 плану.
@@ -107,6 +109,13 @@
 - Додано `make test-concurrency`; concurrency suite зареєстровано окремо в `phpunit.xml` і також входить у повний test run.
 - Додано ADR-005 з аналізом `READ COMMITTED` + ordered `FOR UPDATE`, `SERIALIZABLE`, optimistic version checks та advisory locks.
 - Повні перевірки після Phase 3: PHPUnit — 84 тести, 145 588 assertions; PHPStan max — 0 помилок; Pint — 103 файли.
+- Додано `idempotency_keys` з composite primary key `(owner_id, key)`, SHA-256 request hash, processing/completed state, stored response, transaction FK, lease та expiry.
+- `IdempotencyExecutor` port і `PostgresIdempotencyExecutor` adapter обгортають claim, transfer, ledger posting, balances і stored response в одну outer PostgreSQL transaction.
+- `POST /v1/transfers` тепер вимагає безпечний `Idempotency-Key`; replay повертає `Idempotency-Replayed: true`, different request body з тим самим key повертає 422.
+- TTL дорівнює 24 годинам: після expiry key атомарно переходить у новий processing operation; processing lease дорівнює 30 секундам.
+- Concurrency scenario №3: 20 parallel processes з одним key дають 1 created transfer і 19 replays, рівно одну ledger transaction та дві entries.
+- Додано ADR-006 про request hashing, atomic completion, replay semantics, TTL та відхилені Redis/separate-commit alternatives.
+- Повні перевірки після Phase 4: PHPUnit — 89 тестів, 145 625 assertions; PHPStan max — 0 помилок; Pint — 110 файлів.
 
 ## Версії
 - PHP 8.4
@@ -114,7 +123,7 @@
 - PostgreSQL 18.x
 
 ## Відкладено
-- Фази 4–9 roadmap ще не починалися.
+- Фази 5–9 roadmap ще не починалися.
 - Docker Desktop на цьому Mac: 4.99.0; Docker Engine: 29.9.3; Docker Compose: v5.7.0.
 
 ## Відкриті питання

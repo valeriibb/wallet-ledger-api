@@ -32,7 +32,7 @@ final readonly class PostgresTransferStore implements TransferStore
         Money $money,
         ?string $reference,
     ): string {
-        return $this->retrier->run(fn (): string => DB::transaction(function () use (
+        $transaction = fn (): string => DB::transaction(function () use (
             $actorId,
             $sourceAccountId,
             $destinationAccountId,
@@ -70,7 +70,13 @@ final readonly class PostgresTransferStore implements TransferStore
             $posting = $this->createPosting->execute($source, $destination, $money);
 
             return $this->ledgerStore->post($posting, LedgerTransactionType::Transfer, $reference);
-        }));
+        });
+
+        if (DB::connection()->transactionLevel() > 0) {
+            return $transaction();
+        }
+
+        return $this->retrier->run($transaction);
     }
 
     private function toTransferAccount(object $row): TransferAccount

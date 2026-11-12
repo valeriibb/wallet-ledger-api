@@ -213,6 +213,7 @@
         "operationId": "transferFunds",
         "tags": ["Transfers"],
         "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
         "requestBody": {
           "required": true,
           "content": {
@@ -224,7 +225,13 @@
         "responses": {
           "201": {
             "description": "Transfer posted",
-            "headers": { "X-Request-Id": { "$ref": "#/components/headers/RequestId" } },
+            "headers": {
+              "X-Request-Id": { "$ref": "#/components/headers/RequestId" },
+              "Idempotency-Replayed": {
+                "description": "True when the stored response was replayed",
+                "schema": { "type": "string", "enum": ["true", "false"] }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -240,6 +247,7 @@
           "401": { "$ref": "#/components/responses/Problem" },
           "403": { "$ref": "#/components/responses/Problem" },
           "404": { "$ref": "#/components/responses/Problem" },
+          "409": { "$ref": "#/components/responses/Problem" },
           "422": { "$ref": "#/components/responses/ValidationProblem" }
         }
       }
@@ -265,6 +273,17 @@
         "in": "path",
         "required": true,
         "schema": { "type": "string", "format": "uuid" }
+      },
+      "IdempotencyKey": {
+        "name": "Idempotency-Key",
+        "in": "header",
+        "required": true,
+        "description": "Opaque key retained for 24 hours",
+        "schema": {
+          "type": "string",
+          "maxLength": 255,
+          "pattern": "^[A-Za-z0-9._:-]+$"
+        }
       }
     },
     "responses": {
