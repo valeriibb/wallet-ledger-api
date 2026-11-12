@@ -379,8 +379,8 @@ Body: { from_account_id, to_account_id, amount, currency, reference? }
 ### Фаза 3 — Transfer + блокування (1 тиждень) ← головна
 - [x] 3.1 Use-case `TransferFunds`: транзакція, `FOR UPDATE` у порядку, перевірки домену.
 - [x] 3.2 Retry на deadlock/serialization failure.
-- [ ] 3.3 Concurrency-тести №1 і №2 (розділ 10).
-- [ ] 3.4 ADR-005 про ізоляцію/блокування, з поясненням альтернатив (SERIALIZABLE, optimistic version, advisory locks).
+- [x] 3.3 Concurrency-тести №1 і №2 (розділ 10).
+- [x] 3.4 ADR-005 про ізоляцію/блокування, з поясненням альтернатив (SERIALIZABLE, optimistic version, advisory locks).
 - **DoD:** сценарії 1–2 стабільно зелені 50 запусків підряд; жодних втрачених/створених копійок.
 
 ### Фаза 4 — Idempotency (3–4 дні)

@@ -1,4 +1,4 @@
-.PHONY: up down test lint analyse mutate
+.PHONY: up down test test-concurrency lint analyse mutate
 
 up:
 	docker compose up -d
@@ -8,6 +8,9 @@ down:
 
 test:
 	docker compose exec php php artisan test
+
+test-concurrency:
+	docker compose exec php php artisan test --testsuite=Concurrency
 
 lint:
 	docker compose exec php ./vendor/bin/pint --test

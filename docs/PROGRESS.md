@@ -16,7 +16,10 @@
 - Фаза 2 повністю завершена: усі identity/account endpoint-и описані в OpenAPI 3.1, authorization та error contract покриті тестами.
 - Фаза 3, крок 3.1 — завершено: `TransferFunds` атомарно блокує рахунки й баланси у deterministic UUID order, перевіряє доменні правила та створює balanced ledger posting.
 - Фаза 3, крок 3.2 — завершено: PostgreSQL `40001`/`40P01` отримали bounded retry з exponential backoff і jitter; інші помилки не повторюються.
-- Наступний крок: 3.3 — реальні PostgreSQL concurrency scenarios з паралельними процесами.
+- Фаза 3, крок 3.3 — завершено: concurrency scenarios №1–2 працюють через 20 окремих PHP processes і реальні PostgreSQL connections.
+- Фаза 3, крок 3.4 — завершено: ADR-005 фіксує `READ COMMITTED`, ordered pessimistic locks, retry strategy та alternatives.
+- Фаза 3 повністю завершена; обидва concurrency scenarios пройшли 50/50 stability runs.
+- Наступний крок: 4.1 — idempotency gate для transfer requests.
 - Створено окремий Git-репозиторій і базову структуру документації.
 - `PLAN.md` містить майстер-план.
 - `AGENTS.md` містить правила роботи та опис продукту з розділів 0 і 1 плану.
@@ -97,6 +100,13 @@
 - Existing `LedgerStore` перевикористовується всередині outer transfer transaction; reference зберігається в `ledger_transactions`, а будь-яка помилка відкочує transaction, entries і обидва balances.
 - Додано `PostgresConcurrencyRetrier`: максимум 3 спроби лише для SQLSTATE `40001`/`40P01`, exponential backoff 25/50 ms та jitter; unit test підтверджує retry і fail-fast для звичайної помилки.
 - Повні перевірки після кроків 3.1–3.2: PHPUnit — 82 тести, 145 574 assertions; PHPStan max — 0 помилок; Pint — 101 файл.
+- Додано `ParallelProcessRunner`, який розподіляє jobs між bounded pool з 20 forked PHP processes; кожен worker використовує окреме PostgreSQL connection.
+- Concurrency scenario №1: 100 transfer attempts з балансу 10 стабільно дають рівно 10 posted і 90 insufficient-funds results, фінальний баланс 0/10.
+- Concurrency scenario №2: 500 одночасних A→B/B→A transfers завершуються без worker/deadlock failures, фінальні баланси 1000/1000 і total 2000.
+- Обидва concurrency tests пройшли 50 запусків підряд: 30 000 transfer attempts без втрати або створення minor units.
+- Додано `make test-concurrency`; concurrency suite зареєстровано окремо в `phpunit.xml` і також входить у повний test run.
+- Додано ADR-005 з аналізом `READ COMMITTED` + ordered `FOR UPDATE`, `SERIALIZABLE`, optimistic version checks та advisory locks.
+- Повні перевірки після Phase 3: PHPUnit — 84 тести, 145 588 assertions; PHPStan max — 0 помилок; Pint — 103 файли.
 
 ## Версії
 - PHP 8.4
@@ -104,7 +114,7 @@
 - PostgreSQL 18.x
 
 ## Відкладено
-- Кроки 3.3–3.4 та фази 4–9 roadmap ще не починалися.
+- Фази 4–9 roadmap ще не починалися.
 - Docker Desktop на цьому Mac: 4.99.0; Docker Engine: 29.9.3; Docker Compose: v5.7.0.
 
 ## Відкриті питання
