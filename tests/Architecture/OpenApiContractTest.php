@@ -35,6 +35,7 @@ final class OpenApiContractTest extends TestCase
             ['/v1/transfers', 'post'],
             ['/v1/deposits', 'post'],
             ['/v1/withdrawals', 'post'],
+            ['/v1/transactions/{transaction}/reversal', 'post'],
         ];
 
         foreach ($operations as [$path, $method]) {

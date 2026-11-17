@@ -23,7 +23,8 @@
 - Фаза 4 повністю завершена; ADR-006 фіксує atomic transaction boundary та 24-hour retention contract.
 - Фаза 5, крок 5.1 — завершено: системні рахунки, database uniqueness і fake payment provider port/adapter реалізовані.
 - Фаза 5, крок 5.2 — завершено: deposit і withdrawal use cases, provider idempotency та balanced ledger postings реалізовані.
-- Наступний крок: 5.3 — reversal з усіма заборонами.
+- Фаза 5, крок 5.3 — завершено: reversal створює протилежні immutable entries; double reversal і reversal of reversal заборонені.
+- Наступний крок: 5.4 — комісії.
 - Створено окремий Git-репозиторій і базову структуру документації.
 - `PLAN.md` містить майстер-план.
 - `AGENTS.md` містить правила роботи та опис продукту з розділів 0 і 1 плану.
@@ -128,6 +129,12 @@
 - `POST /v1/deposits` і `POST /v1/withdrawals` захищені Sanctum, policy та обов'язковим `Idempotency-Key`; response replay не створює повторної ledger transaction.
 - Fake payment provider підтримує idempotent `charge` і `payout`; provider reference зберігається як ledger transaction reference. Обидва endpoint-и додано до OpenAPI 3.1.
 - Повні перевірки після кроку 5.2: PHPUnit — 100 тестів, 145 698 assertions; PHPStan max — 0 помилок; Pint — 133 файли.
+- Додано `ReversePosting` domain service, `ReversalStore` port, PostgreSQL adapter і `ReverseTransaction` application service.
+- `POST /v1/transactions/{transaction}/reversal` створює нову transaction з протилежними entries, встановлює `reversal_of` і атомарно переводить original transaction у status `reversed`.
+- Original transaction блокується `FOR UPDATE`; partial unique index на `reversal_of` додатково гарантує лише одне сторнування. Reversal transaction не можна сторнувати.
+- Авторизація reversal враховує тип операції: transfer/withdrawal належать власнику debit wallet, deposit — власнику credit wallet. Recipient не може сторнувати transfer від імені sender.
+- Concurrency test: 20 одночасних спроб дали рівно 1 reversal і 19 `already_reversed`; баланси відновлені один раз.
+- Повні перевірки після кроку 5.3: PHPUnit — 107 тестів, 145 760 assertions; PHPStan max — 0 помилок; Pint — 146 файлів.
 
 ## Версії
 - PHP 8.4
@@ -135,7 +142,7 @@
 - PostgreSQL 18.x
 
 ## Відкладено
-- Кроки 5.3–5.4 та фази 6–9 roadmap ще не починалися.
+- Крок 5.4 та фази 6–9 roadmap ще не починалися.
 - Docker Desktop на цьому Mac: 4.99.0; Docker Engine: 29.9.3; Docker Compose: v5.7.0.
 
 ## Відкриті питання

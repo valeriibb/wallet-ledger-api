@@ -17,9 +17,13 @@ use RuntimeException;
 
 final class PostgresLedgerStore implements LedgerStore
 {
-    public function post(Posting $posting, LedgerTransactionType $type, ?string $reference = null): string
-    {
-        return DB::transaction(function () use ($posting, $type, $reference): string {
+    public function post(
+        Posting $posting,
+        LedgerTransactionType $type,
+        ?string $reference = null,
+        ?string $reversalOf = null,
+    ): string {
+        return DB::transaction(function () use ($posting, $type, $reference, $reversalOf): string {
             /** @var list<JournalEntry> $entries */
             $entries = $posting->entries();
             $accountIds = array_values(array_unique(array_map(
@@ -92,6 +96,7 @@ final class PostgresLedgerStore implements LedgerStore
                 'id' => $transactionId,
                 'type' => $type->value,
                 'status' => 'posted',
+                'reversal_of' => $reversalOf,
                 'reference' => $reference,
             ]);
 

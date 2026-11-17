@@ -11,6 +11,7 @@ use Illuminate\Support\Str;
 use Illuminate\Testing\TestResponse;
 use Laravel\Sanctum\Sanctum;
 use PHPUnit\Framework\Attributes\Test;
+use Symfony\Component\HttpFoundation\Response;
 use Tests\TestCase;
 
 final class CashMovementTest extends TestCase
@@ -182,6 +183,7 @@ final class CashMovementTest extends TestCase
         self::assertDatabaseCount('ledger_transactions', 0);
     }
 
+    /** @return TestResponse<Response> */
     private function cashRequest(string $uri, string $walletId, int $amount, ?string $key = null): TestResponse
     {
         return $this->withHeader('Idempotency-Key', $key ?? (string) Str::uuid())

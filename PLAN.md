@@ -391,7 +391,7 @@ Body: { from_account_id, to_account_id, amount, currency, reference? }
 ### Фаза 5 — Deposit/Withdraw/Fee/Reversal (4–5 днів)
 - [x] 5.1 Системні рахунки, fake payment provider (порт + адаптер).
 - [x] 5.2 Deposit, withdrawal.
-- [ ] 5.3 Reversal з усіма заборонами (подвійне сторнування, сторнування сторнування).
+- [x] 5.3 Reversal з усіма заборонами (подвійне сторнування, сторнування сторнування).
 - [ ] 5.4 Комісії.
 - **DoD:** I5 виконується після будь-якої комбінації операцій (property-based тест).
 

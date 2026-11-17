@@ -6,6 +6,8 @@ namespace Tests\Concurrency;
 
 use App\Application\Idempotency\Port\IdempotencyExecutor;
 use App\Application\Idempotency\StoredResponse;
+use App\Application\Reversal\Exception\TransactionAlreadyReversed;
+use App\Application\Reversal\Port\ReversalStore;
 use App\Application\Transfer\TransferFunds;
 use App\Domain\Ledger\Exception\InsufficientFunds;
 use App\Domain\Shared\ValueObject\Currency;
@@ -163,6 +165,45 @@ final class TransferConcurrencyTest extends TestCase
             ->where('key', $key)
             ->where('status', 'completed')
             ->count());
+    }
+
+    #[Test]
+    public function competing_reversals_can_create_only_one_reversal_transaction(): void
+    {
+        $sender = User::factory()->create();
+        $recipient = User::factory()->create();
+        $sourceId = $this->createWallet($sender, 500);
+        $destinationId = $this->createWallet($recipient, 0);
+        $original = app(TransferFunds::class)->execute(
+            $sender->id,
+            $sourceId,
+            $destinationId,
+            Money::ofMinor(100, Currency::fromCode('USD')),
+            null,
+        );
+
+        $results = (new ParallelProcessRunner)->run(
+            range(1, 20),
+            self::WORKERS,
+            static function (int $_job) use ($sender, $original): string {
+                try {
+                    app(ReversalStore::class)->reverse($sender->id, $original->transactionId);
+
+                    return 'created';
+                } catch (TransactionAlreadyReversed) {
+                    return 'already_reversed';
+                } catch (Throwable $exception) {
+                    return 'error:'.$exception::class.':'.$exception->getMessage();
+                }
+            },
+        );
+
+        self::assertSame(1, $this->resultCount($results, 'created'));
+        self::assertSame(19, $this->resultCount($results, 'already_reversed'));
+        self::assertSame([], $this->errors($results));
+        self::assertSame(1, DB::table('ledger_transactions')->where('type', 'reversal')->count());
+        self::assertSame(500, $this->balance($sourceId));
+        self::assertSame(0, $this->balance($destinationId));
     }
 
     private function createWallet(User $owner, int $balance): string

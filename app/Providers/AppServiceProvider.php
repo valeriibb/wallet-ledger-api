@@ -11,6 +11,7 @@ use App\Application\Cash\Port\CashOperationStore;
 use App\Application\Idempotency\Port\IdempotencyExecutor;
 use App\Application\Ledger\Port\LedgerStore;
 use App\Application\Payment\Port\PaymentProvider;
+use App\Application\Reversal\Port\ReversalStore;
 use App\Application\Transfer\Port\TransferStore;
 use App\Http\ProblemDetails;
 use App\Infrastructure\Account\PostgresAccountReader;
@@ -20,6 +21,7 @@ use App\Infrastructure\Cash\PostgresCashOperationStore;
 use App\Infrastructure\Idempotency\PostgresIdempotencyExecutor;
 use App\Infrastructure\Ledger\PostgresLedgerStore;
 use App\Infrastructure\Payment\FakePaymentProvider;
+use App\Infrastructure\Reversal\PostgresReversalStore;
 use App\Infrastructure\Transfer\PostgresTransferStore;
 use App\Models\Account;
 use App\Policies\AccountPolicy;
@@ -44,6 +46,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(IdempotencyExecutor::class, PostgresIdempotencyExecutor::class);
         $this->app->bind(LedgerStore::class, PostgresLedgerStore::class);
         $this->app->bind(PaymentProvider::class, FakePaymentProvider::class);
+        $this->app->bind(ReversalStore::class, PostgresReversalStore::class);
         $this->app->bind(TransferStore::class, PostgresTransferStore::class);
     }
 

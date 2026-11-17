@@ -339,6 +339,50 @@
           "422": { "$ref": "#/components/responses/ValidationProblem" }
         }
       }
+    },
+    "/v1/transactions/{transaction}/reversal": {
+      "post": {
+        "operationId": "reverseTransaction",
+        "tags": ["Reversals"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "transaction",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "format": "uuid" }
+          },
+          { "$ref": "#/components/parameters/IdempotencyKey" }
+        ],
+        "responses": {
+          "201": {
+            "description": "Reversal posted",
+            "headers": {
+              "X-Request-Id": { "$ref": "#/components/headers/RequestId" },
+              "Idempotency-Replayed": {
+                "description": "True when the stored response was replayed",
+                "schema": { "type": "string", "enum": ["true", "false"] }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["data"],
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/PostedReversal" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Problem" },
+          "403": { "$ref": "#/components/responses/Problem" },
+          "404": { "$ref": "#/components/responses/Problem" },
+          "409": { "$ref": "#/components/responses/Problem" },
+          "422": { "$ref": "#/components/responses/ValidationProblem" }
+        }
+      }
     }
   },
   "components": {
@@ -539,6 +583,15 @@
           "currency": { "type": "string", "pattern": "^[A-Z]{3}$" },
           "status": { "type": "string", "const": "posted" },
           "provider_reference": { "type": "string" }
+        }
+      },
+      "PostedReversal": {
+        "type": "object",
+        "required": ["transaction_id", "reversal_of", "status"],
+        "properties": {
+          "transaction_id": { "type": "string", "format": "uuid" },
+          "reversal_of": { "type": "string", "format": "uuid" },
+          "status": { "type": "string", "const": "posted" }
         }
       },
       "ProblemDetails": {

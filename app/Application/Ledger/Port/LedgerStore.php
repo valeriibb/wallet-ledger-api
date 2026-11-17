@@ -9,5 +9,10 @@ use App\Domain\Ledger\Posting;
 
 interface LedgerStore
 {
-    public function post(Posting $posting, LedgerTransactionType $type, ?string $reference = null): string;
+    public function post(
+        Posting $posting,
+        LedgerTransactionType $type,
+        ?string $reference = null,
+        ?string $reversalOf = null,
+    ): string;
 }
