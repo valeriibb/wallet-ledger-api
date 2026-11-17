@@ -392,7 +392,7 @@ Body: { from_account_id, to_account_id, amount, currency, reference? }
 - [x] 5.1 Системні рахунки, fake payment provider (порт + адаптер).
 - [x] 5.2 Deposit, withdrawal.
 - [x] 5.3 Reversal з усіма заборонами (подвійне сторнування, сторнування сторнування).
-- [ ] 5.4 Комісії.
+- [x] 5.4 Комісії.
 - **DoD:** I5 виконується після будь-якої комбінації операцій (property-based тест).
 
 ### Фаза 6 — Outbox + вебхуки (1 тиждень)

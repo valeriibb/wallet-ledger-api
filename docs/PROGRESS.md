@@ -24,7 +24,8 @@
 - Фаза 5, крок 5.1 — завершено: системні рахунки, database uniqueness і fake payment provider port/adapter реалізовані.
 - Фаза 5, крок 5.2 — завершено: deposit і withdrawal use cases, provider idempotency та balanced ledger postings реалізовані.
 - Фаза 5, крок 5.3 — завершено: reversal створює протилежні immutable entries; double reversal і reversal of reversal заборонені.
-- Наступний крок: 5.4 — комісії.
+- Фаза 5, крок 5.4 — завершено: fee posting та system fees account реалізовані; Фаза 5 повністю завершена.
+- Наступний крок: 6.1 — transactional outbox і relay з `SKIP LOCKED`.
 - Створено окремий Git-репозиторій і базову структуру документації.
 - `PLAN.md` містить майстер-план.
 - `AGENTS.md` містить правила роботи та опис продукту з розділів 0 і 1 плану.
@@ -135,6 +136,10 @@
 - Авторизація reversal враховує тип операції: transfer/withdrawal належать власнику debit wallet, deposit — власнику credit wallet. Recipient не може сторнувати transfer від імені sender.
 - Concurrency test: 20 одночасних спроб дали рівно 1 reversal і 19 `already_reversed`; баланси відновлені один раз.
 - Повні перевірки після кроку 5.3: PHPUnit — 107 тестів, 145 760 assertions; PHPStan max — 0 помилок; Pint — 146 файлів.
+- Додано `ChargeFee`, `FeeStore` port і `PostgresFeeStore` adapter. Комісія є окремою balanced transaction: debit user wallet / credit system fees.
+- Fee use case має власний idempotency hash; повтор одного key повертає stored response без повторного списання. Ownership, active status, currency та недостатній баланс перевіряються під ordered locks.
+- Додано property-style integration test для п'яти наборів сум: комбінації deposit, withdrawal, transfer, fee та reversal зберігають zero sum ledger entries і cached balances окремо для USD та EUR.
+- Повні перевірки після Phase 5: PHPUnit — 116 тестів, 145 793 assertions; PHPStan max — 0 помилок; Pint — 152 файли.
 
 ## Версії
 - PHP 8.4
@@ -142,7 +147,7 @@
 - PostgreSQL 18.x
 
 ## Відкладено
-- Крок 5.4 та фази 6–9 roadmap ще не починалися.
+- Фази 6–9 roadmap ще не починалися.
 - Docker Desktop на цьому Mac: 4.99.0; Docker Engine: 29.9.3; Docker Compose: v5.7.0.
 
 ## Відкриті питання
