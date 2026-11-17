@@ -251,6 +251,94 @@
           "422": { "$ref": "#/components/responses/ValidationProblem" }
         }
       }
+    },
+    "/v1/deposits": {
+      "post": {
+        "operationId": "depositFunds",
+        "tags": ["Cash movements"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CashMovementRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Deposit posted",
+            "headers": {
+              "X-Request-Id": { "$ref": "#/components/headers/RequestId" },
+              "Idempotency-Replayed": {
+                "description": "True when the stored response was replayed",
+                "schema": { "type": "string", "enum": ["true", "false"] }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["data"],
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/PostedCashMovement" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Problem" },
+          "403": { "$ref": "#/components/responses/Problem" },
+          "404": { "$ref": "#/components/responses/Problem" },
+          "409": { "$ref": "#/components/responses/Problem" },
+          "422": { "$ref": "#/components/responses/ValidationProblem" }
+        }
+      }
+    },
+    "/v1/withdrawals": {
+      "post": {
+        "operationId": "withdrawFunds",
+        "tags": ["Cash movements"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CashMovementRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Withdrawal posted",
+            "headers": {
+              "X-Request-Id": { "$ref": "#/components/headers/RequestId" },
+              "Idempotency-Replayed": {
+                "description": "True when the stored response was replayed",
+                "schema": { "type": "string", "enum": ["true", "false"] }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["data"],
+                  "properties": {
+                    "data": { "$ref": "#/components/schemas/PostedCashMovement" }
+                  }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/Problem" },
+          "403": { "$ref": "#/components/responses/Problem" },
+          "404": { "$ref": "#/components/responses/Problem" },
+          "409": { "$ref": "#/components/responses/Problem" },
+          "422": { "$ref": "#/components/responses/ValidationProblem" }
+        }
+      }
     }
   },
   "components": {
@@ -347,6 +435,16 @@
           "reference": { "type": ["string", "null"], "maxLength": 255 }
         }
       },
+      "CashMovementRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["account_id", "amount", "currency"],
+        "properties": {
+          "account_id": { "type": "string", "format": "uuid" },
+          "amount": { "type": "integer", "minimum": 1, "description": "Minor units" },
+          "currency": { "type": "string", "pattern": "^[A-Z]{3}$" }
+        }
+      },
       "User": {
         "type": "object",
         "required": ["id", "name", "email"],
@@ -429,6 +527,18 @@
           "amount": { "type": "integer", "minimum": 1, "description": "Minor units" },
           "currency": { "type": "string", "pattern": "^[A-Z]{3}$" },
           "status": { "type": "string", "const": "posted" }
+        }
+      },
+      "PostedCashMovement": {
+        "type": "object",
+        "required": ["transaction_id", "account_id", "amount", "currency", "status", "provider_reference"],
+        "properties": {
+          "transaction_id": { "type": "string", "format": "uuid" },
+          "account_id": { "type": "string", "format": "uuid" },
+          "amount": { "type": "integer", "minimum": 1, "description": "Minor units" },
+          "currency": { "type": "string", "pattern": "^[A-Z]{3}$" },
+          "status": { "type": "string", "const": "posted" },
+          "provider_reference": { "type": "string" }
         }
       },
       "ProblemDetails": {

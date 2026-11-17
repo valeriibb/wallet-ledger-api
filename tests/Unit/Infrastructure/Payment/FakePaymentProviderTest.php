@@ -27,4 +27,20 @@ final class FakePaymentProviderTest extends TestCase
         self::assertSame($first->providerReference, $replayed->providerReference);
         self::assertNotSame($first->providerReference, $different->providerReference);
     }
+
+    #[Test]
+    public function it_confirms_a_payout_and_replays_the_reference_for_the_same_key(): void
+    {
+        $provider = new FakePaymentProvider;
+        $amount = Money::ofMinor(1000, Currency::fromCode('EUR'));
+
+        $first = $provider->payout('user-1', $amount, 'withdrawal-1');
+        $replayed = $provider->payout('user-1', $amount, 'withdrawal-1');
+        $different = $provider->payout('user-1', $amount, 'withdrawal-2');
+
+        self::assertSame(ProviderPaymentStatus::Confirmed, $first->status);
+        self::assertSame($first->providerReference, $replayed->providerReference);
+        self::assertNotSame($first->providerReference, $different->providerReference);
+        self::assertStringStartsWith('fake_payout_', $first->providerReference);
+    }
 }

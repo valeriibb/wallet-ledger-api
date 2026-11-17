@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CashMovementController;
 use App\Http\Controllers\TransferController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -28,4 +29,8 @@ Route::get('/v1/accounts/{account}/entries', [AccountController::class, 'entries
     ->middleware('auth:sanctum');
 
 Route::post('/v1/transfers', [TransferController::class, 'store'])
+    ->middleware('auth:sanctum');
+Route::post('/v1/deposits', [CashMovementController::class, 'deposit'])
+    ->middleware('auth:sanctum');
+Route::post('/v1/withdrawals', [CashMovementController::class, 'withdraw'])
     ->middleware('auth:sanctum');

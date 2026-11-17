@@ -14,4 +14,10 @@ interface PaymentProvider
         Money $amount,
         string $idempotencyKey,
     ): ProviderPayment;
+
+    public function payout(
+        string $userId,
+        Money $amount,
+        string $idempotencyKey,
+    ): ProviderPayment;
 }

@@ -22,7 +22,8 @@
 - Фаза 4, кроки 4.1–4.2 — завершено: transfer idempotency gate, request hash, stored replay, different-body rejection, concurrency scenario №3 і TTL реалізовані.
 - Фаза 4 повністю завершена; ADR-006 фіксує atomic transaction boundary та 24-hour retention contract.
 - Фаза 5, крок 5.1 — завершено: системні рахунки, database uniqueness і fake payment provider port/adapter реалізовані.
-- Наступний крок: 5.2 — deposit і withdrawal use cases.
+- Фаза 5, крок 5.2 — завершено: deposit і withdrawal use cases, provider idempotency та balanced ledger postings реалізовані.
+- Наступний крок: 5.3 — reversal з усіма заборонами.
 - Створено окремий Git-репозиторій і базову структуру документації.
 - `PLAN.md` містить майстер-план.
 - `AGENTS.md` містить правила роботи та опис продукту з розділів 0 і 1 плану.
@@ -122,6 +123,11 @@
 - Додано `PaymentProvider` port, незалежний `ProviderPayment` result і `FakePaymentProvider` adapter з confirmed response та стабільним provider reference для повтору одного provider idempotency key.
 - Focused Phase 5.1 checks: 3 тести, 13 assertions; PHPStan max — 0 помилок; Pint — 122 файли.
 - Повні перевірки після кроку 5.1: PHPUnit — 92 тести, 145 638 assertions; PHPStan max — 0 помилок; Pint — 122 файли.
+- Додано `DepositFunds` і `WithdrawFunds`, `CashOperationStore` port та PostgreSQL adapter; зовнішній provider викликається до відкриття локальної database transaction.
+- Deposit проводить debit system cash / credit user wallet; withdrawal проводить debit user wallet / credit system cash. Обидві операції повторно перевіряють ownership, type, status і currency під ordered row locks.
+- `POST /v1/deposits` і `POST /v1/withdrawals` захищені Sanctum, policy та обов'язковим `Idempotency-Key`; response replay не створює повторної ledger transaction.
+- Fake payment provider підтримує idempotent `charge` і `payout`; provider reference зберігається як ledger transaction reference. Обидва endpoint-и додано до OpenAPI 3.1.
+- Повні перевірки після кроку 5.2: PHPUnit — 100 тестів, 145 698 assertions; PHPStan max — 0 помилок; Pint — 133 файли.
 
 ## Версії
 - PHP 8.4
@@ -129,7 +135,7 @@
 - PostgreSQL 18.x
 
 ## Відкладено
-- Кроки 5.2–5.4 та фази 6–9 roadmap ще не починалися.
+- Кроки 5.3–5.4 та фази 6–9 roadmap ще не починалися.
 - Docker Desktop на цьому Mac: 4.99.0; Docker Engine: 29.9.3; Docker Compose: v5.7.0.
 
 ## Відкриті питання

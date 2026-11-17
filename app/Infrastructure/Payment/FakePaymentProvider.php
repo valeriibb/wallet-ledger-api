@@ -21,4 +21,15 @@ final class FakePaymentProvider implements PaymentProvider
             status: ProviderPaymentStatus::Confirmed,
         );
     }
+
+    public function payout(
+        string $userId,
+        Money $amount,
+        string $idempotencyKey,
+    ): ProviderPayment {
+        return new ProviderPayment(
+            providerReference: 'fake_payout_'.substr(hash('sha256', $userId.'|'.$idempotencyKey), 0, 32),
+            status: ProviderPaymentStatus::Confirmed,
+        );
+    }
 }
