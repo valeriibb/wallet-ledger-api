@@ -17,6 +17,9 @@ use App\Application\Outbox\Port\OutboxWriter;
 use App\Application\Payment\Port\PaymentProvider;
 use App\Application\Reversal\Port\ReversalStore;
 use App\Application\Transfer\Port\TransferStore;
+use App\Application\Webhook\Port\HostResolver;
+use App\Application\Webhook\Port\SecretCipher;
+use App\Application\Webhook\Port\WebhookEndpointStore;
 use App\Http\ProblemDetails;
 use App\Infrastructure\Account\PostgresAccountReader;
 use App\Infrastructure\Account\PostgresAccountStore;
@@ -31,6 +34,9 @@ use App\Infrastructure\Outbox\PostgresOutboxWriter;
 use App\Infrastructure\Payment\FakePaymentProvider;
 use App\Infrastructure\Reversal\PostgresReversalStore;
 use App\Infrastructure\Transfer\PostgresTransferStore;
+use App\Infrastructure\Webhook\DnsHostResolver;
+use App\Infrastructure\Webhook\LaravelSecretCipher;
+use App\Infrastructure\Webhook\PostgresWebhookEndpointStore;
 use App\Models\Account;
 use App\Policies\AccountPolicy;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -60,6 +66,9 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(PaymentProvider::class, FakePaymentProvider::class);
         $this->app->bind(ReversalStore::class, PostgresReversalStore::class);
         $this->app->bind(TransferStore::class, PostgresTransferStore::class);
+        $this->app->bind(HostResolver::class, DnsHostResolver::class);
+        $this->app->bind(SecretCipher::class, LaravelSecretCipher::class);
+        $this->app->bind(WebhookEndpointStore::class, PostgresWebhookEndpointStore::class);
     }
 
     /**

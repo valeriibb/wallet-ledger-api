@@ -7,6 +7,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CashMovementController;
 use App\Http\Controllers\ReversalController;
 use App\Http\Controllers\TransferController;
+use App\Http\Controllers\WebhookEndpointController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -37,4 +38,15 @@ Route::post('/v1/withdrawals', [CashMovementController::class, 'withdraw'])
     ->middleware('auth:sanctum');
 Route::post('/v1/transactions/{transaction}/reversal', [ReversalController::class, 'store'])
     ->whereUuid('transaction')
+    ->middleware('auth:sanctum');
+
+Route::get('/v1/webhook-endpoints', [WebhookEndpointController::class, 'index'])
+    ->middleware('auth:sanctum');
+Route::post('/v1/webhook-endpoints', [WebhookEndpointController::class, 'store'])
+    ->middleware('auth:sanctum');
+Route::patch('/v1/webhook-endpoints/{webhook}', [WebhookEndpointController::class, 'update'])
+    ->whereUuid('webhook')
+    ->middleware('auth:sanctum');
+Route::delete('/v1/webhook-endpoints/{webhook}', [WebhookEndpointController::class, 'destroy'])
+    ->whereUuid('webhook')
     ->middleware('auth:sanctum');
