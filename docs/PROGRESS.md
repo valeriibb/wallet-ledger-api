@@ -25,7 +25,8 @@
 - Фаза 5, крок 5.2 — завершено: deposit і withdrawal use cases, provider idempotency та balanced ledger postings реалізовані.
 - Фаза 5, крок 5.3 — завершено: reversal створює протилежні immutable entries; double reversal і reversal of reversal заборонені.
 - Фаза 5, крок 5.4 — завершено: fee posting та system fees account реалізовані; Фаза 5 повністю завершена.
-- Наступний крок: 6.1 — transactional outbox і relay з `SKIP LOCKED`.
+- Фаза 6, крок 6.1 — завершено: transactional outbox, concurrent relay і ADR-0007 реалізовані.
+- Наступний крок: 6.2 — webhook endpoint CRUD, HMAC signatures і SSRF protection.
 - Створено окремий Git-репозиторій і базову структуру документації.
 - `PLAN.md` містить майстер-план.
 - `AGENTS.md` містить правила роботи та опис продукту з розділів 0 і 1 плану.
@@ -140,6 +141,13 @@
 - Fee use case має власний idempotency hash; повтор одного key повертає stored response без повторного списання. Ownership, active status, currency та недостатній баланс перевіряються під ordered locks.
 - Додано property-style integration test для п'яти наборів сум: комбінації deposit, withdrawal, transfer, fee та reversal зберігають zero sum ledger entries і cached balances окремо для USD та EUR.
 - Повні перевірки після Phase 5: PHPUnit — 116 тестів, 145 793 assertions; PHPStan max — 0 помилок; Pint — 152 файли.
+- Додано `outbox_events`, `OutboxWriter` port і PostgreSQL adapter; кожна ledger transaction створює `{type}.completed` event у тій самій database transaction.
+- Якщо outbox insert падає, ledger transaction, immutable entries і cached balances відкочуються разом.
+- Додано `EventPublisher` і `OutboxRelayStore` ports, logging publisher adapter, PostgreSQL relay з `FOR UPDATE SKIP LOCKED` та Artisan command `outbox:relay`.
+- Failed publish збільшує `attempts` і залишає event pending. Delivery має at-least-once semantics; consumers повинні deduplicate за stable event ID.
+- Concurrency test: 10 relay processes опублікували 50 pending events без duplicate publication у normal run; усі events отримали `published_at`.
+- ADR-0007 фіксує transactional outbox, crash window, at-least-once delivery та відхилені direct publish/distributed transaction alternatives.
+- Повні перевірки після кроку 6.1: PHPUnit — 121 тест, 145 826 assertions; PHPStan max — 0 помилок; Pint — 166 файлів.
 
 ## Версії
 - PHP 8.4
@@ -147,7 +155,7 @@
 - PostgreSQL 18.x
 
 ## Відкладено
-- Фази 6–9 roadmap ще не починалися.
+- Кроки 6.2–6.4 та фази 7–9 roadmap ще не починалися.
 - Docker Desktop на цьому Mac: 4.99.0; Docker Engine: 29.9.3; Docker Compose: v5.7.0.
 
 ## Відкриті питання

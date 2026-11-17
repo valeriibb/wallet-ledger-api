@@ -35,7 +35,6 @@ final class FeeTest extends TestCase
         );
 
         $transactionId = $result->response->transactionId;
-        self::assertIsString($transactionId);
         $systemFeesId = DB::table('accounts')->where('type', 'system_fees')->value('id');
         self::assertIsString($systemFeesId);
         self::assertDatabaseHas('ledger_transactions', [

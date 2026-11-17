@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Infrastructure\Ledger;
 
 use App\Application\Ledger\Port\LedgerStore;
+use App\Application\Outbox\Port\OutboxWriter;
 use App\Domain\Ledger\EntryDirection;
 use App\Domain\Ledger\Exception\InsufficientFunds;
 use App\Domain\Ledger\JournalEntry;
@@ -17,6 +18,8 @@ use RuntimeException;
 
 final class PostgresLedgerStore implements LedgerStore
 {
+    public function __construct(private readonly OutboxWriter $outbox) {}
+
     public function post(
         Posting $posting,
         LedgerTransactionType $type,
@@ -111,6 +114,18 @@ final class PostgresLedgerStore implements LedgerStore
                         'updated_at' => now(),
                     ]);
             }
+
+            $this->outbox->append(
+                'ledger_transaction',
+                $transactionId,
+                $type->value.'.completed',
+                [
+                    'transaction_id' => $transactionId,
+                    'type' => $type->value,
+                    'reference' => $reference,
+                    'reversal_of' => $reversalOf,
+                ],
+            );
 
             return $transactionId;
         });
