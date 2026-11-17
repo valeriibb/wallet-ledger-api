@@ -389,7 +389,7 @@ Body: { from_account_id, to_account_id, amount, currency, reference? }
 - **DoD:** повтор запиту повертає ту саму відповідь; гонка з одним ключем дає одну транзакцію.
 
 ### Фаза 5 — Deposit/Withdraw/Fee/Reversal (4–5 днів)
-- [ ] 5.1 Системні рахунки, fake payment provider (порт + адаптер).
+- [x] 5.1 Системні рахунки, fake payment provider (порт + адаптер).
 - [ ] 5.2 Deposit, withdrawal.
 - [ ] 5.3 Reversal з усіма заборонами (подвійне сторнування, сторнування сторнування).
 - [ ] 5.4 Комісії.

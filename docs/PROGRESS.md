@@ -21,7 +21,8 @@
 - Фаза 3 повністю завершена; обидва concurrency scenarios пройшли 50/50 stability runs.
 - Фаза 4, кроки 4.1–4.2 — завершено: transfer idempotency gate, request hash, stored replay, different-body rejection, concurrency scenario №3 і TTL реалізовані.
 - Фаза 4 повністю завершена; ADR-006 фіксує atomic transaction boundary та 24-hour retention contract.
-- Наступний крок: 5.1 — системні рахунки та fake payment provider port/adapter.
+- Фаза 5, крок 5.1 — завершено: системні рахунки, database uniqueness і fake payment provider port/adapter реалізовані.
+- Наступний крок: 5.2 — deposit і withdrawal use cases.
 - Створено окремий Git-репозиторій і базову структуру документації.
 - `PLAN.md` містить майстер-план.
 - `AGENTS.md` містить правила роботи та опис продукту з розділів 0 і 1 плану.
@@ -116,6 +117,11 @@
 - Concurrency scenario №3: 20 parallel processes з одним key дають 1 created transfer і 19 replays, рівно одну ledger transaction та дві entries.
 - Додано ADR-006 про request hashing, atomic completion, replay semantics, TTL та відхилені Redis/separate-commit alternatives.
 - Повні перевірки після Phase 4: PHPUnit — 89 тестів, 145 625 assertions; PHPStan max — 0 помилок; Pint — 110 файлів.
+- Додано `SystemAccountType`, `SystemAccountStore` port, `PostgresSystemAccountStore` adapter та `GetSystemAccount` application service.
+- Partial unique index гарантує один system account для кожної пари `(type, currency)`; account і balance створюються атомарно, system balance дозволяє від'ємне значення.
+- Додано `PaymentProvider` port, незалежний `ProviderPayment` result і `FakePaymentProvider` adapter з confirmed response та стабільним provider reference для повтору одного provider idempotency key.
+- Focused Phase 5.1 checks: 3 тести, 13 assertions; PHPStan max — 0 помилок; Pint — 122 файли.
+- Повні перевірки після кроку 5.1: PHPUnit — 92 тести, 145 638 assertions; PHPStan max — 0 помилок; Pint — 122 файли.
 
 ## Версії
 - PHP 8.4
@@ -123,7 +129,7 @@
 - PostgreSQL 18.x
 
 ## Відкладено
-- Фази 5–9 roadmap ще не починалися.
+- Кроки 5.2–5.4 та фази 6–9 roadmap ще не починалися.
 - Docker Desktop на цьому Mac: 4.99.0; Docker Engine: 29.9.3; Docker Compose: v5.7.0.
 
 ## Відкриті питання

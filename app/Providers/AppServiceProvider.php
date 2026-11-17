@@ -6,14 +6,18 @@ namespace App\Providers;
 
 use App\Application\Account\Port\AccountReader;
 use App\Application\Account\Port\AccountStore;
+use App\Application\Account\Port\SystemAccountStore;
 use App\Application\Idempotency\Port\IdempotencyExecutor;
 use App\Application\Ledger\Port\LedgerStore;
+use App\Application\Payment\Port\PaymentProvider;
 use App\Application\Transfer\Port\TransferStore;
 use App\Http\ProblemDetails;
 use App\Infrastructure\Account\PostgresAccountReader;
 use App\Infrastructure\Account\PostgresAccountStore;
+use App\Infrastructure\Account\PostgresSystemAccountStore;
 use App\Infrastructure\Idempotency\PostgresIdempotencyExecutor;
 use App\Infrastructure\Ledger\PostgresLedgerStore;
+use App\Infrastructure\Payment\FakePaymentProvider;
 use App\Infrastructure\Transfer\PostgresTransferStore;
 use App\Models\Account;
 use App\Policies\AccountPolicy;
@@ -33,8 +37,10 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->bind(AccountReader::class, PostgresAccountReader::class);
         $this->app->bind(AccountStore::class, PostgresAccountStore::class);
+        $this->app->bind(SystemAccountStore::class, PostgresSystemAccountStore::class);
         $this->app->bind(IdempotencyExecutor::class, PostgresIdempotencyExecutor::class);
         $this->app->bind(LedgerStore::class, PostgresLedgerStore::class);
+        $this->app->bind(PaymentProvider::class, FakePaymentProvider::class);
         $this->app->bind(TransferStore::class, PostgresTransferStore::class);
     }
 
