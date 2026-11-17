@@ -28,7 +28,8 @@
 - Фаза 6, крок 6.1 — завершено: transactional outbox, concurrent relay і ADR-0007 реалізовані.
 - Фаза 6, крок 6.2 — завершено: webhook endpoint CRUD, encrypted secrets, HMAC signing і SSRF validation реалізовані.
 - Фаза 6, крок 6.3 — завершено: signed webhook delivery, retries/backoff, dead letter і owner-scoped replay реалізовані.
-- Наступний крок: 6.4 — crash test між commit і publication.
+- Фаза 6, крок 6.4 — завершено: реальний process crash після commit та ambiguous publish retry зі stable event ID перевірені.
+- Фаза 6 повністю завершена; наступний крок: 7.1 — reconciliation checks, scheduler, reports і metric.
 - Створено окремий Git-репозиторій і базову структуру документації.
 - `PLAN.md` містить майстер-план.
 - `AGENTS.md` містить правила роботи та опис продукту з розділів 0 і 1 плану.
@@ -162,6 +163,10 @@
 - Retry schedule: 1 хв, 5 хв, 30 хв, 2 год, 24 год; після п'ятої невдалої спроби delivery переходить у `dead_letter`.
 - `POST /v1/webhook-deliveries/{delivery}/replay` owner-scoped і повертає delivery у pending; endpoint описано в OpenAPI 3.1.
 - Додано Artisan command `webhooks:deliver`; повні перевірки після кроку 6.3: PHPUnit — 137 тестів, 145 892 assertions; PHPStan max — 0 помилок; Pint — 201 файл.
+- Crash recovery test завершує producer process через `SIGKILL` після business commit; новий relay знаходить pending outbox event і публікує його.
+- Ambiguous publish test моделює втрату з'єднання після прийняття event receiver-ом і доводить, що retry використовує той самий stable `event_id`.
+- Concurrency fixtures використовують UUID-based emails, тому committed process tests можна безпечно запускати повторно.
+- Повні перевірки після кроку 6.4: PHPUnit — 139 тестів, 145 911 assertions; PHPStan max — 0 помилок; Pint — 202 файли.
 
 ## Версії
 - PHP 8.4
@@ -169,7 +174,7 @@
 - PostgreSQL 18.x
 
 ## Відкладено
-- Крок 6.4 та фази 7–9 roadmap ще не починалися.
+- Фази 7–9 roadmap ще не починалися.
 - Docker Desktop на цьому Mac: 4.99.0; Docker Engine: 29.9.3; Docker Compose: v5.7.0.
 
 ## Відкриті питання

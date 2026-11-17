@@ -399,7 +399,7 @@ Body: { from_account_id, to_account_id, amount, currency, reference? }
 - [x] 6.1 Outbox-таблиця, запис у транзакції, relay із `SKIP LOCKED`.
 - [x] 6.2 Webhook endpoints CRUD, підпис HMAC, SSRF-захист.
 - [x] 6.3 Доставка з retries/backoff/dead-letter, replay.
-- [ ] 6.4 Тест №4 (падіння між commit і публікацією).
+- [x] 6.4 Тест №4 (падіння між commit і публікацією).
 - **DoD:** жодна подія не губиться; дублікати безпечні (event_id).
 
 ### Фаза 7 — Reconciliation (3–4 дні)

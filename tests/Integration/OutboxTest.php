@@ -145,6 +145,47 @@ final class OutboxTest extends TestCase
         self::assertDatabaseMissing('outbox_events', ['published_at' => null]);
     }
 
+    #[Test]
+    public function an_ambiguous_publish_is_retried_with_the_same_event_id(): void
+    {
+        [$sourceId, $destinationId] = $this->createWallets();
+        app(PostLedgerTransaction::class)->execute(
+            $this->posting($sourceId, $destinationId),
+            LedgerTransactionType::Transfer,
+        );
+        $publisher = new class implements EventPublisher
+        {
+            /** @var list<string> */
+            public array $eventIds = [];
+
+            private bool $fail = true;
+
+            public function publish(OutboxEvent $event): void
+            {
+                $this->eventIds[] = $event->id;
+
+                if ($this->fail) {
+                    $this->fail = false;
+
+                    throw new RuntimeException('Connection was lost after the receiver accepted the event.');
+                }
+            }
+        };
+        $this->app->instance(EventPublisher::class, $publisher);
+
+        $ambiguous = app(RelayOutboxEvents::class)->execute();
+        self::assertSame(1, $ambiguous->failed);
+        self::assertDatabaseHas('outbox_events', ['published_at' => null, 'attempts' => 1]);
+
+        $retried = app(RelayOutboxEvents::class)->execute();
+
+        self::assertSame(1, $retried->published);
+        self::assertCount(2, $publisher->eventIds);
+        self::assertSame($publisher->eventIds[0], $publisher->eventIds[1]);
+        self::assertDatabaseHas('outbox_events', ['attempts' => 2]);
+        self::assertDatabaseMissing('outbox_events', ['published_at' => null]);
+    }
+
     /** @return array{string, string} */
     private function createWallets(): array
     {

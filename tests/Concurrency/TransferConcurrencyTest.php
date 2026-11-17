@@ -28,8 +28,8 @@ final class TransferConcurrencyTest extends TestCase
     #[Test]
     public function one_hundred_competing_transfers_can_spend_only_the_available_balance(): void
     {
-        $sender = User::factory()->create();
-        $recipient = User::factory()->create();
+        $sender = $this->createUser();
+        $recipient = $this->createUser();
         $sourceId = $this->createWallet($sender, 10);
         $destinationId = $this->createWallet($recipient, 0);
         $jobs = range(1, 100);
@@ -68,8 +68,8 @@ final class TransferConcurrencyTest extends TestCase
     #[Test]
     public function five_hundred_opposite_transfers_preserve_the_total_without_failures(): void
     {
-        $alice = User::factory()->create();
-        $bob = User::factory()->create();
+        $alice = $this->createUser();
+        $bob = $this->createUser();
         $aliceAccountId = $this->createWallet($alice, 1000);
         $bobAccountId = $this->createWallet($bob, 1000);
         $jobs = range(0, 499);
@@ -107,8 +107,8 @@ final class TransferConcurrencyTest extends TestCase
     #[Test]
     public function twenty_requests_with_one_idempotency_key_create_one_transfer(): void
     {
-        $sender = User::factory()->create();
-        $recipient = User::factory()->create();
+        $sender = $this->createUser();
+        $recipient = $this->createUser();
         $sourceId = $this->createWallet($sender, 1000);
         $destinationId = $this->createWallet($recipient, 0);
         $key = (string) Str::uuid();
@@ -170,8 +170,8 @@ final class TransferConcurrencyTest extends TestCase
     #[Test]
     public function competing_reversals_can_create_only_one_reversal_transaction(): void
     {
-        $sender = User::factory()->create();
-        $recipient = User::factory()->create();
+        $sender = $this->createUser();
+        $recipient = $this->createUser();
         $sourceId = $this->createWallet($sender, 500);
         $destinationId = $this->createWallet($recipient, 0);
         $original = app(TransferFunds::class)->execute(
@@ -225,6 +225,13 @@ final class TransferConcurrencyTest extends TestCase
         ]);
 
         return $accountId;
+    }
+
+    private function createUser(): User
+    {
+        return User::factory()->create([
+            'email' => Str::uuid7().'@concurrency-test.example',
+        ]);
     }
 
     /** @param list<string> $results */
