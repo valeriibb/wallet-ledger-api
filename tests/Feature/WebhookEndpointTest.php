@@ -9,6 +9,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Laravel\Sanctum\Sanctum;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -105,5 +106,49 @@ final class WebhookEndpointTest extends TestCase
             ->assertJsonValidationErrors('events.0');
 
         self::assertDatabaseCount('webhook_endpoints', 0);
+    }
+
+    #[Test]
+    public function only_the_endpoint_owner_can_replay_a_delivery(): void
+    {
+        $owner = User::factory()->create();
+        $otherUser = User::factory()->create();
+        Sanctum::actingAs($owner);
+        $endpointId = $this->postJson('/v1/webhook-endpoints', [
+            'url' => 'https://hooks.example.com/wallet',
+            'events' => ['transfer.completed'],
+        ])->assertCreated()->json('data.id');
+        self::assertIsString($endpointId);
+        $eventId = (string) Str::uuid7();
+        $deliveryId = (string) Str::uuid7();
+        DB::table('outbox_events')->insert([
+            'id' => $eventId,
+            'aggregate_type' => 'ledger_transaction',
+            'aggregate_id' => (string) Str::uuid7(),
+            'event_type' => 'transfer.completed',
+            'payload' => '{}',
+        ]);
+        DB::table('webhook_deliveries')->insert([
+            'id' => $deliveryId,
+            'endpoint_id' => $endpointId,
+            'event_id' => $eventId,
+            'status' => 'dead_letter',
+            'attempts' => 5,
+            'next_retry_at' => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        Sanctum::actingAs($otherUser);
+        $this->postJson("/v1/webhook-deliveries/{$deliveryId}/replay")->assertNotFound();
+
+        Sanctum::actingAs($owner);
+        $this->postJson("/v1/webhook-deliveries/{$deliveryId}/replay")
+            ->assertOk()
+            ->assertJsonPath('data.status', 'pending');
+        self::assertDatabaseHas('webhook_deliveries', [
+            'id' => $deliveryId,
+            'status' => 'pending',
+            'attempts' => 0,
+        ]);
     }
 }

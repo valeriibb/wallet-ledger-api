@@ -40,6 +40,7 @@ final class OpenApiContractTest extends TestCase
             ['/v1/webhook-endpoints', 'post'],
             ['/v1/webhook-endpoints/{webhook}', 'patch'],
             ['/v1/webhook-endpoints/{webhook}', 'delete'],
+            ['/v1/webhook-deliveries/{delivery}/replay', 'post'],
         ];
 
         foreach ($operations as [$path, $method]) {

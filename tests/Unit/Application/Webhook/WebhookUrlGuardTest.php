@@ -16,13 +16,13 @@ final class WebhookUrlGuardTest extends TestCase
     #[Test]
     public function it_accepts_https_when_every_resolved_address_is_public(): void
     {
+        $this->expectNotToPerformAssertions();
         $guard = new WebhookUrlGuard($this->resolver(['93.184.216.34', '2606:2800:220:1:248:1893:25c8:1946']));
 
         $guard->assertSafe('https://hooks.example.com/events?source=wallet');
-
-        self::assertTrue(true);
     }
 
+    /** @param list<string> $addresses */
     #[Test]
     #[DataProvider('unsafeUrls')]
     public function it_rejects_unsafe_urls(string $url, array $addresses = ['93.184.216.34']): void
@@ -32,7 +32,7 @@ final class WebhookUrlGuardTest extends TestCase
         (new WebhookUrlGuard($this->resolver($addresses)))->assertSafe($url);
     }
 
-    /** @return iterable<string, array{string, list<string>?}> */
+    /** @return iterable<string, array{0: string, 1?: list<string>}> */
     public static function unsafeUrls(): iterable
     {
         yield 'plain HTTP' => ['http://example.com/hook'];

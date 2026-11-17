@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Http\Controllers;
 
 use App\Application\Webhook\Exception\InvalidWebhookUrl;
+use App\Application\Webhook\Exception\WebhookDeliveryNotFound;
 use App\Application\Webhook\Exception\WebhookEndpointNotFound;
 use App\Application\Webhook\ManageWebhookEndpoints;
+use App\Application\Webhook\Port\WebhookDeliveryStore;
 use App\Application\Webhook\WebhookEndpoint;
 use App\Http\ProblemDetails;
 use App\Http\Requests\StoreWebhookEndpointRequest;
@@ -19,7 +21,10 @@ use Symfony\Component\HttpFoundation\Response;
 
 final readonly class WebhookEndpointController
 {
-    public function __construct(private ManageWebhookEndpoints $webhooks) {}
+    public function __construct(
+        private ManageWebhookEndpoints $webhooks,
+        private WebhookDeliveryStore $deliveries,
+    ) {}
 
     public function index(Request $request): JsonResponse
     {
@@ -79,6 +84,22 @@ final readonly class WebhookEndpointController
         }
 
         return response()->noContent();
+    }
+
+    public function replay(Request $request, string $delivery): JsonResponse
+    {
+        try {
+            $this->deliveries->replay($this->user($request)->id, $delivery);
+        } catch (WebhookDeliveryNotFound) {
+            return ProblemDetails::response(
+                $request,
+                Response::HTTP_NOT_FOUND,
+                'Not Found',
+                'The webhook delivery was not found.',
+            );
+        }
+
+        return response()->json(['data' => ['delivery_id' => $delivery, 'status' => 'pending']]);
     }
 
     /** @return array{id: string, url: string, events: list<string>, is_active: bool, created_at: string} */

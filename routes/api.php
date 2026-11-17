@@ -50,3 +50,6 @@ Route::patch('/v1/webhook-endpoints/{webhook}', [WebhookEndpointController::clas
 Route::delete('/v1/webhook-endpoints/{webhook}', [WebhookEndpointController::class, 'destroy'])
     ->whereUuid('webhook')
     ->middleware('auth:sanctum');
+Route::post('/v1/webhook-deliveries/{delivery}/replay', [WebhookEndpointController::class, 'replay'])
+    ->whereUuid('delivery')
+    ->middleware('auth:sanctum');

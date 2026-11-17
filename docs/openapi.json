@@ -442,6 +442,28 @@
           "404": { "$ref": "#/components/responses/Problem" }
         }
       }
+    },
+    "/v1/webhook-deliveries/{delivery}/replay": {
+      "post": {
+        "operationId": "replayWebhookDelivery",
+        "tags": ["Webhooks"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "delivery", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }],
+        "responses": {
+          "200": {
+            "description": "Delivery reset to pending",
+            "content": { "application/json": { "schema": {
+              "type": "object",
+              "properties": { "data": { "type": "object", "required": ["delivery_id", "status"], "properties": {
+                "delivery_id": { "type": "string", "format": "uuid" },
+                "status": { "type": "string", "const": "pending" }
+              } } }
+            } } }
+          },
+          "401": { "$ref": "#/components/responses/Problem" },
+          "404": { "$ref": "#/components/responses/Problem" }
+        }
+      }
     }
   },
   "components": {

@@ -19,7 +19,9 @@ use App\Application\Reversal\Port\ReversalStore;
 use App\Application\Transfer\Port\TransferStore;
 use App\Application\Webhook\Port\HostResolver;
 use App\Application\Webhook\Port\SecretCipher;
+use App\Application\Webhook\Port\WebhookDeliveryStore;
 use App\Application\Webhook\Port\WebhookEndpointStore;
+use App\Application\Webhook\Port\WebhookHttpClient;
 use App\Http\ProblemDetails;
 use App\Infrastructure\Account\PostgresAccountReader;
 use App\Infrastructure\Account\PostgresAccountStore;
@@ -28,7 +30,6 @@ use App\Infrastructure\Cash\PostgresCashOperationStore;
 use App\Infrastructure\Fee\PostgresFeeStore;
 use App\Infrastructure\Idempotency\PostgresIdempotencyExecutor;
 use App\Infrastructure\Ledger\PostgresLedgerStore;
-use App\Infrastructure\Outbox\LogEventPublisher;
 use App\Infrastructure\Outbox\PostgresOutboxRelayStore;
 use App\Infrastructure\Outbox\PostgresOutboxWriter;
 use App\Infrastructure\Payment\FakePaymentProvider;
@@ -36,7 +37,10 @@ use App\Infrastructure\Reversal\PostgresReversalStore;
 use App\Infrastructure\Transfer\PostgresTransferStore;
 use App\Infrastructure\Webhook\DnsHostResolver;
 use App\Infrastructure\Webhook\LaravelSecretCipher;
+use App\Infrastructure\Webhook\LaravelWebhookHttpClient;
+use App\Infrastructure\Webhook\PostgresWebhookDeliveryStore;
 use App\Infrastructure\Webhook\PostgresWebhookEndpointStore;
+use App\Infrastructure\Webhook\WebhookEventPublisher;
 use App\Models\Account;
 use App\Policies\AccountPolicy;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -60,7 +64,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(FeeStore::class, PostgresFeeStore::class);
         $this->app->bind(IdempotencyExecutor::class, PostgresIdempotencyExecutor::class);
         $this->app->bind(LedgerStore::class, PostgresLedgerStore::class);
-        $this->app->bind(EventPublisher::class, LogEventPublisher::class);
+        $this->app->bind(EventPublisher::class, WebhookEventPublisher::class);
         $this->app->bind(OutboxRelayStore::class, PostgresOutboxRelayStore::class);
         $this->app->bind(OutboxWriter::class, PostgresOutboxWriter::class);
         $this->app->bind(PaymentProvider::class, FakePaymentProvider::class);
@@ -69,6 +73,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(HostResolver::class, DnsHostResolver::class);
         $this->app->bind(SecretCipher::class, LaravelSecretCipher::class);
         $this->app->bind(WebhookEndpointStore::class, PostgresWebhookEndpointStore::class);
+        $this->app->bind(WebhookDeliveryStore::class, PostgresWebhookDeliveryStore::class);
+        $this->app->bind(WebhookHttpClient::class, LaravelWebhookHttpClient::class);
     }
 
     /**

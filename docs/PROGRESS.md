@@ -27,7 +27,8 @@
 - Фаза 5, крок 5.4 — завершено: fee posting та system fees account реалізовані; Фаза 5 повністю завершена.
 - Фаза 6, крок 6.1 — завершено: transactional outbox, concurrent relay і ADR-0007 реалізовані.
 - Фаза 6, крок 6.2 — завершено: webhook endpoint CRUD, encrypted secrets, HMAC signing і SSRF validation реалізовані.
-- Наступний крок: 6.3 — webhook delivery з retries, exponential backoff, dead letter і replay.
+- Фаза 6, крок 6.3 — завершено: signed webhook delivery, retries/backoff, dead letter і owner-scoped replay реалізовані.
+- Наступний крок: 6.4 — crash test між commit і publication.
 - Створено окремий Git-репозиторій і базову структуру документації.
 - `PLAN.md` містить майстер-план.
 - `AGENTS.md` містить правила роботи та опис продукту з розділів 0 і 1 плану.
@@ -155,6 +156,12 @@
 - `WebhookUrlGuard` дозволяє лише HTTPS без credentials, перевіряє hostname та всі A/AAAA addresses, відхиляє private, reserved, loopback, link-local, metadata і local/internal targets.
 - Delivery layer у кроці 6.3 повторно перевірятиме DNS безпосередньо перед HTTP request для захисту від DNS rebinding.
 - Повні перевірки після кроку 6.2: PHPUnit — 134 тести, 145 874 assertions; PHPStan max — 0 помилок; Pint — 187 файлів.
+- Додано `webhook_deliveries`, `WebhookDeliveryStore` і `WebhookHttpClient` ports, PostgreSQL claim adapter з `SKIP LOCKED` та Laravel HTTP adapter.
+- Outbox relay створює delivery лише для active endpoints, підписаних на event type; unique `(endpoint_id, event_id)` забезпечує idempotent scheduling.
+- Delivery worker повторно виконує SSRF DNS check, формує exact JSON body та HMAC headers, має processing lease і записує response code.
+- Retry schedule: 1 хв, 5 хв, 30 хв, 2 год, 24 год; після п'ятої невдалої спроби delivery переходить у `dead_letter`.
+- `POST /v1/webhook-deliveries/{delivery}/replay` owner-scoped і повертає delivery у pending; endpoint описано в OpenAPI 3.1.
+- Додано Artisan command `webhooks:deliver`; повні перевірки після кроку 6.3: PHPUnit — 137 тестів, 145 892 assertions; PHPStan max — 0 помилок; Pint — 201 файл.
 
 ## Версії
 - PHP 8.4
@@ -162,7 +169,7 @@
 - PostgreSQL 18.x
 
 ## Відкладено
-- Кроки 6.3–6.4 та фази 7–9 roadmap ще не починалися.
+- Крок 6.4 та фази 7–9 roadmap ще не починалися.
 - Docker Desktop на цьому Mac: 4.99.0; Docker Engine: 29.9.3; Docker Compose: v5.7.0.
 
 ## Відкриті питання
