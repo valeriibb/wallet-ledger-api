@@ -9,6 +9,7 @@ use App\Application\Webhook\Exception\WebhookDeliveryNotFound;
 use App\Application\Webhook\Port\SecretCipher;
 use App\Application\Webhook\Port\WebhookDeliveryStore;
 use App\Application\Webhook\WebhookDelivery;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use RuntimeException;
@@ -49,10 +50,10 @@ final readonly class PostgresWebhookDeliveryStore implements WebhookDeliveryStor
     {
         return DB::transaction(function () use ($limit): array {
             $ids = DB::table('webhook_deliveries')
-                ->where(function ($query): void {
-                    $query->where(function ($pending): void {
+                ->where(function (Builder $query): void {
+                    $query->where(function (Builder $pending): void {
                         $pending->where('status', 'pending')->where('next_retry_at', '<=', now());
-                    })->orWhere(function ($stale): void {
+                    })->orWhere(function (Builder $stale): void {
                         $stale->where('status', 'processing')->where('locked_until', '<=', now());
                     });
                 })

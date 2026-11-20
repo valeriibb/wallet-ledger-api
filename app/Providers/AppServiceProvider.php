@@ -15,6 +15,7 @@ use App\Application\Outbox\Port\EventPublisher;
 use App\Application\Outbox\Port\OutboxRelayStore;
 use App\Application\Outbox\Port\OutboxWriter;
 use App\Application\Payment\Port\PaymentProvider;
+use App\Application\Reconciliation\Port\ReconciliationStore;
 use App\Application\Reversal\Port\ReversalStore;
 use App\Application\Transfer\Port\TransferStore;
 use App\Application\Webhook\Port\HostResolver;
@@ -22,6 +23,7 @@ use App\Application\Webhook\Port\SecretCipher;
 use App\Application\Webhook\Port\WebhookDeliveryStore;
 use App\Application\Webhook\Port\WebhookEndpointStore;
 use App\Application\Webhook\Port\WebhookHttpClient;
+use App\Enums\UserRole;
 use App\Http\ProblemDetails;
 use App\Infrastructure\Account\PostgresAccountReader;
 use App\Infrastructure\Account\PostgresAccountStore;
@@ -33,6 +35,7 @@ use App\Infrastructure\Ledger\PostgresLedgerStore;
 use App\Infrastructure\Outbox\PostgresOutboxRelayStore;
 use App\Infrastructure\Outbox\PostgresOutboxWriter;
 use App\Infrastructure\Payment\FakePaymentProvider;
+use App\Infrastructure\Reconciliation\PostgresReconciliationStore;
 use App\Infrastructure\Reversal\PostgresReversalStore;
 use App\Infrastructure\Transfer\PostgresTransferStore;
 use App\Infrastructure\Webhook\DnsHostResolver;
@@ -42,6 +45,7 @@ use App\Infrastructure\Webhook\PostgresWebhookDeliveryStore;
 use App\Infrastructure\Webhook\PostgresWebhookEndpointStore;
 use App\Infrastructure\Webhook\WebhookEventPublisher;
 use App\Models\Account;
+use App\Models\User;
 use App\Policies\AccountPolicy;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -68,6 +72,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(OutboxRelayStore::class, PostgresOutboxRelayStore::class);
         $this->app->bind(OutboxWriter::class, PostgresOutboxWriter::class);
         $this->app->bind(PaymentProvider::class, FakePaymentProvider::class);
+        $this->app->bind(ReconciliationStore::class, PostgresReconciliationStore::class);
         $this->app->bind(ReversalStore::class, PostgresReversalStore::class);
         $this->app->bind(TransferStore::class, PostgresTransferStore::class);
         $this->app->bind(HostResolver::class, DnsHostResolver::class);
@@ -83,6 +88,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Gate::policy(Account::class, AccountPolicy::class);
+        Gate::define('viewReconciliation', static fn (User $user): bool => $user->role === UserRole::Admin);
 
         RateLimiter::for('login', static function (Request $request): Limit {
             $emailInput = $request->input('email');

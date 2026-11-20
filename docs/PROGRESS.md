@@ -29,7 +29,9 @@
 - Фаза 6, крок 6.2 — завершено: webhook endpoint CRUD, encrypted secrets, HMAC signing і SSRF validation реалізовані.
 - Фаза 6, крок 6.3 — завершено: signed webhook delivery, retries/backoff, dead letter і owner-scoped replay реалізовані.
 - Фаза 6, крок 6.4 — завершено: реальний process crash після commit та ambiguous publish retry зі stable event ID перевірені.
-- Фаза 6 повністю завершена; наступний крок: 7.1 — reconciliation checks, scheduler, reports і metric.
+- Фаза 6 повністю завершена.
+- Фаза 7, крок 7.1 — завершено: reconciliation checks, nightly scheduler, stored reports, admin API і structured metric реалізовані.
+- Наступний крок: 7.2 — chaos test із навмисним пошкодженням cached balance.
 - Створено окремий Git-репозиторій і базову структуру документації.
 - `PLAN.md` містить майстер-план.
 - `AGENTS.md` містить правила роботи та опис продукту з розділів 0 і 1 плану.
@@ -167,6 +169,11 @@
 - Ambiguous publish test моделює втрату з'єднання після прийняття event receiver-ом і доводить, що retry використовує той самий stable `event_id`.
 - Concurrency fixtures використовують UUID-based emails, тому committed process tests можна безпечно запускати повторно.
 - Повні перевірки після кроку 6.4: PHPUnit — 139 тестів, 145 911 assertions; PHPStan max — 0 помилок; Pint — 202 файли.
+- Додано `reconciliation_runs` і `reconciliation_discrepancies`; reconciliation лише фіксує evidence і не змінює фінансові дані автоматично.
+- `PostgresReconciliationStore` перевіряє system balance по currency, cached account balances, послідовність `balance_after`, balance кожної transaction і stale outbox events в одному `REPEATABLE READ` snapshot.
+- `reconciliation:run` запускається вручну та scheduler-ом щодня о 02:00 з distributed overlap lock; structured log містить metric `reconciliation_discrepancies`.
+- `GET /v1/admin/reconciliation/runs` доступний лише admin і повертає summary разом із деталями discrepancies; endpoint описано в OpenAPI 3.1.
+- Повні перевірки після кроку 7.1: PHPUnit — 143 тести, 145 932 assertions; PHPStan max — 0 помилок; Pint — 213 файлів.
 
 ## Версії
 - PHP 8.4
@@ -174,7 +181,7 @@
 - PostgreSQL 18.x
 
 ## Відкладено
-- Фази 7–9 roadmap ще не починалися.
+- Крок 7.2 та фази 8–9 roadmap ще не починалися.
 - Docker Desktop на цьому Mac: 4.99.0; Docker Engine: 29.9.3; Docker Compose: v5.7.0.
 
 ## Відкриті питання

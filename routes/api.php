@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CashMovementController;
+use App\Http\Controllers\ReconciliationController;
 use App\Http\Controllers\ReversalController;
 use App\Http\Controllers\TransferController;
 use App\Http\Controllers\WebhookEndpointController;
@@ -52,4 +53,7 @@ Route::delete('/v1/webhook-endpoints/{webhook}', [WebhookEndpointController::cla
     ->middleware('auth:sanctum');
 Route::post('/v1/webhook-deliveries/{delivery}/replay', [WebhookEndpointController::class, 'replay'])
     ->whereUuid('delivery')
+    ->middleware('auth:sanctum');
+
+Route::get('/v1/admin/reconciliation/runs', [ReconciliationController::class, 'index'])
     ->middleware('auth:sanctum');
