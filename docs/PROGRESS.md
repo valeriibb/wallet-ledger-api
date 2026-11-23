@@ -32,7 +32,9 @@
 - Фаза 6 повністю завершена.
 - Фаза 7, крок 7.1 — завершено: reconciliation checks, nightly scheduler, stored reports, admin API і structured metric реалізовані.
 - Фаза 7, крок 7.2 — завершено: chaos test виявляє навмисне пошкодження cached balance та зберігає evidence без automatic repair.
-- Фаза 7 повністю завершена; наступний крок: 8.1 — exchange-rate port/adapter, cache, rounding rules і ADR.
+- Фаза 7 повністю завершена.
+- Фаза 8, крок 8.1 — завершено: exact exchange rates, fake provider, five-minute cache, persisted snapshots, half-up rounding і ADR-0010 реалізовані.
+- Наступний крок: 8.2 — atomic `ConvertCurrency` use case з чотирма ledger entries і rounding metadata.
 - Створено окремий Git-репозиторій і базову структуру документації.
 - `PLAN.md` містить майстер-план.
 - `AGENTS.md` містить правила роботи та опис продукту з розділів 0 і 1 плану.
@@ -177,6 +179,11 @@
 - Повні перевірки після кроку 7.1: PHPUnit — 143 тести, 145 932 assertions; PHPStan max — 0 помилок; Pint — 213 файлів.
 - Chaos test змінює cached balance зі 100 на 101, отримує `account_balance_mismatch` з `expected=100` і `actual=101`, не змінює corrupted projection та immutable ledger.
 - Повні перевірки після кроку 7.2: PHPUnit — 144 тести, 145 939 assertions; PHPStan max — 0 помилок; Pint — 213 файлів.
+- Додано `ExchangeRateProvider` port, deterministic `FakeExchangeRateProvider` source adapter і `CachedExchangeRateProvider` decorator з TTL 5 хвилин.
+- `ExchangeRate` нормалізує rate до decimal scale 10 і конвертує integer minor units через BCMath; PHP float і `round()` не використовуються.
+- Round-half-up rule перевірено на boundary: 92.5 minor units стає 93; rate snapshots зберігаються в `exchange_rates` для investigation.
+- ADR-0010 фіксує exact decimal rates, one-time rounding, cache та майбутній облік rounding difference через system FX accounts.
+- Повні перевірки після кроку 8.1: PHPUnit — 149 тестів, 145 952 assertions; PHPStan max — 0 помилок; Pint — 221 файл.
 
 ## Версії
 - PHP 8.4
@@ -184,7 +191,7 @@
 - PostgreSQL 18.x
 
 ## Відкладено
-- Фази 8–9 roadmap ще не починалися.
+- Крок 8.2 та фаза 9 roadmap ще не починалися.
 - Docker Desktop на цьому Mac: 4.99.0; Docker Engine: 29.9.3; Docker Compose: v5.7.0.
 
 ## Відкриті питання

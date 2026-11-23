@@ -8,6 +8,7 @@ use App\Application\Account\Port\AccountReader;
 use App\Application\Account\Port\AccountStore;
 use App\Application\Account\Port\SystemAccountStore;
 use App\Application\Cash\Port\CashOperationStore;
+use App\Application\Currency\Port\ExchangeRateProvider;
 use App\Application\Fee\Port\FeeStore;
 use App\Application\Idempotency\Port\IdempotencyExecutor;
 use App\Application\Ledger\Port\LedgerStore;
@@ -29,6 +30,8 @@ use App\Infrastructure\Account\PostgresAccountReader;
 use App\Infrastructure\Account\PostgresAccountStore;
 use App\Infrastructure\Account\PostgresSystemAccountStore;
 use App\Infrastructure\Cash\PostgresCashOperationStore;
+use App\Infrastructure\Currency\CachedExchangeRateProvider;
+use App\Infrastructure\Currency\FakeExchangeRateProvider;
 use App\Infrastructure\Fee\PostgresFeeStore;
 use App\Infrastructure\Idempotency\PostgresIdempotencyExecutor;
 use App\Infrastructure\Ledger\PostgresLedgerStore;
@@ -48,6 +51,8 @@ use App\Models\Account;
 use App\Models\User;
 use App\Policies\AccountPolicy;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Contracts\Cache\Factory as CacheFactory;
+use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
@@ -65,6 +70,11 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(AccountStore::class, PostgresAccountStore::class);
         $this->app->bind(SystemAccountStore::class, PostgresSystemAccountStore::class);
         $this->app->bind(CashOperationStore::class, PostgresCashOperationStore::class);
+        $this->app->bind(ExchangeRateProvider::class, static function (Application $app): ExchangeRateProvider {
+            $cache = $app->make(CacheFactory::class)->store();
+
+            return new CachedExchangeRateProvider(new FakeExchangeRateProvider, $cache);
+        });
         $this->app->bind(FeeStore::class, PostgresFeeStore::class);
         $this->app->bind(IdempotencyExecutor::class, PostgresIdempotencyExecutor::class);
         $this->app->bind(LedgerStore::class, PostgresLedgerStore::class);
