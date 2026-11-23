@@ -32,6 +32,25 @@ final class ExchangeRateTest extends TestCase
     }
 
     #[Test]
+    public function it_reports_the_exact_output_and_rounding_difference(): void
+    {
+        $usd = Currency::fromCode('USD');
+        $rate = ExchangeRate::fromDecimal(
+            $usd,
+            Currency::fromCode('EUR'),
+            '0.925',
+            'test',
+            '2026-11-23T10:00:00+00:00',
+        );
+
+        $converted = $rate->convertDetailed(Money::ofMinor(100, $usd));
+
+        self::assertSame(93, $converted->money->minorAmount());
+        self::assertSame('92.5000000000', $converted->exactMinorAmount);
+        self::assertSame('0.5000000000', $converted->roundingDifference);
+    }
+
+    #[Test]
     public function a_fraction_below_half_rounds_down(): void
     {
         $rate = ExchangeRate::fromDecimal(

@@ -51,6 +51,11 @@ final readonly class ExchangeRate
 
     public function convert(Money $money): Money
     {
+        return $this->convertDetailed($money)->money;
+    }
+
+    public function convertDetailed(Money $money): ConvertedMoney
+    {
         if (! $money->currency()->equals($this->base)) {
             throw new InvalidArgumentException('Money currency must match the exchange rate base currency.');
         }
@@ -69,7 +74,14 @@ final readonly class ExchangeRate
             throw new OverflowException('Converted money exceeds the integer limit.');
         }
 
-        return Money::ofMinor((int) $converted, $this->quote);
+        $exactMinorAmount = bcdiv($product, self::SCALE_FACTOR, 10);
+        $roundingDifference = bcsub($converted, $exactMinorAmount, 10);
+
+        return new ConvertedMoney(
+            Money::ofMinor((int) $converted, $this->quote),
+            $exactMinorAmount,
+            $roundingDifference,
+        );
     }
 
     public function base(): Currency

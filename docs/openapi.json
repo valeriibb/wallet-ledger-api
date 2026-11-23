@@ -2,223 +2,374 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Wallet & Ledger API",
-    "version": "0.2.0",
+    "version": "0.8.0",
     "description": "Identity and wallet account endpoints. Money values are integer minor units."
   },
   "servers": [
-    { "url": "http://127.0.0.1:8080" }
+    {
+      "url": "http://127.0.0.1:8080"
+    }
   ],
   "paths": {
     "/v1/auth/register": {
       "post": {
         "operationId": "register",
-        "tags": ["Identity"],
+        "tags": [
+          "Identity"
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/RegisterRequest" }
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequest"
+              }
             }
           }
         },
         "responses": {
           "201": {
             "description": "Registered",
-            "headers": { "X-Request-Id": { "$ref": "#/components/headers/RequestId" } },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            },
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/TokenGrant" }
+                "schema": {
+                  "$ref": "#/components/schemas/TokenGrant"
+                }
               }
             }
           },
-          "422": { "$ref": "#/components/responses/ValidationProblem" }
+          "422": {
+            "$ref": "#/components/responses/ValidationProblem"
+          }
         }
       }
     },
     "/v1/auth/login": {
       "post": {
         "operationId": "login",
-        "tags": ["Identity"],
+        "tags": [
+          "Identity"
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/LoginRequest" }
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
             }
           }
         },
         "responses": {
           "200": {
             "description": "Authenticated",
-            "headers": { "X-Request-Id": { "$ref": "#/components/headers/RequestId" } },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            },
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/TokenGrant" }
+                "schema": {
+                  "$ref": "#/components/schemas/TokenGrant"
+                }
               }
             }
           },
-          "401": { "$ref": "#/components/responses/Problem" },
-          "422": { "$ref": "#/components/responses/ValidationProblem" },
-          "429": { "$ref": "#/components/responses/Problem" }
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationProblem"
+          },
+          "429": {
+            "$ref": "#/components/responses/Problem"
+          }
         }
       }
     },
     "/v1/user": {
       "get": {
         "operationId": "currentUser",
-        "tags": ["Identity"],
-        "security": [{ "bearerAuth": [] }],
+        "tags": [
+          "Identity"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "Current user",
-            "headers": { "X-Request-Id": { "$ref": "#/components/headers/RequestId" } },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            },
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/User" }
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
               }
             }
           },
-          "401": { "$ref": "#/components/responses/Problem" }
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          }
         }
       }
     },
     "/v1/accounts": {
       "get": {
         "operationId": "listAccounts",
-        "tags": ["Accounts"],
-        "security": [{ "bearerAuth": [] }],
+        "tags": [
+          "Accounts"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "The current user's wallets",
-            "headers": { "X-Request-Id": { "$ref": "#/components/headers/RequestId" } },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["data"],
+                  "required": [
+                    "data"
+                  ],
                   "properties": {
                     "data": {
                       "type": "array",
-                      "items": { "$ref": "#/components/schemas/Account" }
+                      "items": {
+                        "$ref": "#/components/schemas/Account"
+                      }
                     }
                   }
                 }
               }
             }
           },
-          "401": { "$ref": "#/components/responses/Problem" },
-          "403": { "$ref": "#/components/responses/Problem" }
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          }
         }
       },
       "post": {
         "operationId": "openAccount",
-        "tags": ["Accounts"],
-        "security": [{ "bearerAuth": [] }],
+        "tags": [
+          "Accounts"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/OpenAccountRequest" }
+              "schema": {
+                "$ref": "#/components/schemas/OpenAccountRequest"
+              }
             }
           }
         },
         "responses": {
           "201": {
             "description": "Wallet opened",
-            "headers": { "X-Request-Id": { "$ref": "#/components/headers/RequestId" } },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["data"],
+                  "required": [
+                    "data"
+                  ],
                   "properties": {
-                    "data": { "$ref": "#/components/schemas/OpenedAccount" }
+                    "data": {
+                      "$ref": "#/components/schemas/OpenedAccount"
+                    }
                   }
                 }
               }
             }
           },
-          "401": { "$ref": "#/components/responses/Problem" },
-          "403": { "$ref": "#/components/responses/Problem" },
-          "409": { "$ref": "#/components/responses/Problem" },
-          "422": { "$ref": "#/components/responses/ValidationProblem" }
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationProblem"
+          }
         }
       }
     },
     "/v1/accounts/{account}/balance": {
       "get": {
         "operationId": "getAccountBalance",
-        "tags": ["Accounts"],
-        "security": [{ "bearerAuth": [] }],
-        "parameters": [{ "$ref": "#/components/parameters/AccountId" }],
+        "tags": [
+          "Accounts"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/AccountId"
+          }
+        ],
         "responses": {
           "200": {
             "description": "Current cached balance",
-            "headers": { "X-Request-Id": { "$ref": "#/components/headers/RequestId" } },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["data"],
+                  "required": [
+                    "data"
+                  ],
                   "properties": {
-                    "data": { "$ref": "#/components/schemas/AccountBalance" }
+                    "data": {
+                      "$ref": "#/components/schemas/AccountBalance"
+                    }
                   }
                 }
               }
             }
           },
-          "401": { "$ref": "#/components/responses/Problem" },
-          "403": { "$ref": "#/components/responses/Problem" },
-          "404": { "$ref": "#/components/responses/Problem" }
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          }
         }
       }
     },
     "/v1/accounts/{account}/entries": {
       "get": {
         "operationId": "getAccountStatement",
-        "tags": ["Accounts"],
-        "security": [{ "bearerAuth": [] }],
+        "tags": [
+          "Accounts"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
-          { "$ref": "#/components/parameters/AccountId" },
+          {
+            "$ref": "#/components/parameters/AccountId"
+          },
           {
             "name": "limit",
             "in": "query",
-            "schema": { "type": "integer", "minimum": 1, "maximum": 100, "default": 20 }
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
           },
           {
             "name": "cursor",
             "in": "query",
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
           "200": {
             "description": "A cursor page in newest-first order",
-            "headers": { "X-Request-Id": { "$ref": "#/components/headers/RequestId" } },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            },
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/StatementPage" }
+                "schema": {
+                  "$ref": "#/components/schemas/StatementPage"
+                }
               }
             }
           },
-          "401": { "$ref": "#/components/responses/Problem" },
-          "403": { "$ref": "#/components/responses/Problem" },
-          "404": { "$ref": "#/components/responses/Problem" },
-          "422": { "$ref": "#/components/responses/ValidationProblem" }
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationProblem"
+          }
         }
       }
     },
     "/v1/transfers": {
       "post": {
         "operationId": "transferFunds",
-        "tags": ["Transfers"],
-        "security": [{ "bearerAuth": [] }],
-        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "tags": [
+          "Transfers"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/TransferRequest" }
+              "schema": {
+                "$ref": "#/components/schemas/TransferRequest"
+              }
             }
           }
         },
@@ -226,43 +377,155 @@
           "201": {
             "description": "Transfer posted",
             "headers": {
-              "X-Request-Id": { "$ref": "#/components/headers/RequestId" },
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              },
               "Idempotency-Replayed": {
                 "description": "True when the stored response was replayed",
-                "schema": { "type": "string", "enum": ["true", "false"] }
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "true",
+                    "false"
+                  ]
+                }
               }
             },
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["data"],
+                  "required": [
+                    "data"
+                  ],
                   "properties": {
-                    "data": { "$ref": "#/components/schemas/PostedTransfer" }
+                    "data": {
+                      "$ref": "#/components/schemas/PostedTransfer"
+                    }
                   }
                 }
               }
             }
           },
-          "401": { "$ref": "#/components/responses/Problem" },
-          "403": { "$ref": "#/components/responses/Problem" },
-          "404": { "$ref": "#/components/responses/Problem" },
-          "409": { "$ref": "#/components/responses/Problem" },
-          "422": { "$ref": "#/components/responses/ValidationProblem" }
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationProblem"
+          }
+        }
+      }
+    },
+    "/v1/conversions": {
+      "post": {
+        "operationId": "convertCurrency",
+        "tags": [
+          "Conversions"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConversionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Currency conversion posted",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              },
+              "Idempotency-Replayed": {
+                "description": "True when the stored response was replayed",
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "true",
+                    "false"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/PostedConversion"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationProblem"
+          }
         }
       }
     },
     "/v1/deposits": {
       "post": {
         "operationId": "depositFunds",
-        "tags": ["Cash movements"],
-        "security": [{ "bearerAuth": [] }],
-        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "tags": [
+          "Cash movements"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/CashMovementRequest" }
+              "schema": {
+                "$ref": "#/components/schemas/CashMovementRequest"
+              }
             }
           }
         },
@@ -270,43 +533,77 @@
           "201": {
             "description": "Deposit posted",
             "headers": {
-              "X-Request-Id": { "$ref": "#/components/headers/RequestId" },
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              },
               "Idempotency-Replayed": {
                 "description": "True when the stored response was replayed",
-                "schema": { "type": "string", "enum": ["true", "false"] }
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "true",
+                    "false"
+                  ]
+                }
               }
             },
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["data"],
+                  "required": [
+                    "data"
+                  ],
                   "properties": {
-                    "data": { "$ref": "#/components/schemas/PostedCashMovement" }
+                    "data": {
+                      "$ref": "#/components/schemas/PostedCashMovement"
+                    }
                   }
                 }
               }
             }
           },
-          "401": { "$ref": "#/components/responses/Problem" },
-          "403": { "$ref": "#/components/responses/Problem" },
-          "404": { "$ref": "#/components/responses/Problem" },
-          "409": { "$ref": "#/components/responses/Problem" },
-          "422": { "$ref": "#/components/responses/ValidationProblem" }
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationProblem"
+          }
         }
       }
     },
     "/v1/withdrawals": {
       "post": {
         "operationId": "withdrawFunds",
-        "tags": ["Cash movements"],
-        "security": [{ "bearerAuth": [] }],
-        "parameters": [{ "$ref": "#/components/parameters/IdempotencyKey" }],
+        "tags": [
+          "Cash movements"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/CashMovementRequest" }
+              "schema": {
+                "$ref": "#/components/schemas/CashMovementRequest"
+              }
             }
           }
         },
@@ -314,166 +611,388 @@
           "201": {
             "description": "Withdrawal posted",
             "headers": {
-              "X-Request-Id": { "$ref": "#/components/headers/RequestId" },
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              },
               "Idempotency-Replayed": {
                 "description": "True when the stored response was replayed",
-                "schema": { "type": "string", "enum": ["true", "false"] }
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "true",
+                    "false"
+                  ]
+                }
               }
             },
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["data"],
+                  "required": [
+                    "data"
+                  ],
                   "properties": {
-                    "data": { "$ref": "#/components/schemas/PostedCashMovement" }
+                    "data": {
+                      "$ref": "#/components/schemas/PostedCashMovement"
+                    }
                   }
                 }
               }
             }
           },
-          "401": { "$ref": "#/components/responses/Problem" },
-          "403": { "$ref": "#/components/responses/Problem" },
-          "404": { "$ref": "#/components/responses/Problem" },
-          "409": { "$ref": "#/components/responses/Problem" },
-          "422": { "$ref": "#/components/responses/ValidationProblem" }
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationProblem"
+          }
         }
       }
     },
     "/v1/transactions/{transaction}/reversal": {
       "post": {
         "operationId": "reverseTransaction",
-        "tags": ["Reversals"],
-        "security": [{ "bearerAuth": [] }],
+        "tags": [
+          "Reversals"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "parameters": [
           {
             "name": "transaction",
             "in": "path",
             "required": true,
-            "schema": { "type": "string", "format": "uuid" }
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
           },
-          { "$ref": "#/components/parameters/IdempotencyKey" }
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
         ],
         "responses": {
           "201": {
             "description": "Reversal posted",
             "headers": {
-              "X-Request-Id": { "$ref": "#/components/headers/RequestId" },
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              },
               "Idempotency-Replayed": {
                 "description": "True when the stored response was replayed",
-                "schema": { "type": "string", "enum": ["true", "false"] }
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "true",
+                    "false"
+                  ]
+                }
               }
             },
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["data"],
+                  "required": [
+                    "data"
+                  ],
                   "properties": {
-                    "data": { "$ref": "#/components/schemas/PostedReversal" }
+                    "data": {
+                      "$ref": "#/components/schemas/PostedReversal"
+                    }
                   }
                 }
               }
             }
           },
-          "401": { "$ref": "#/components/responses/Problem" },
-          "403": { "$ref": "#/components/responses/Problem" },
-          "404": { "$ref": "#/components/responses/Problem" },
-          "409": { "$ref": "#/components/responses/Problem" },
-          "422": { "$ref": "#/components/responses/ValidationProblem" }
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "409": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationProblem"
+          }
         }
       }
     },
     "/v1/webhook-endpoints": {
       "get": {
         "operationId": "listWebhookEndpoints",
-        "tags": ["Webhooks"],
-        "security": [{ "bearerAuth": [] }],
+        "tags": [
+          "Webhooks"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "Owned webhook endpoints",
-            "content": { "application/json": { "schema": {
-              "type": "object", "required": ["data"],
-              "properties": { "data": { "type": "array", "items": { "$ref": "#/components/schemas/WebhookEndpoint" } } }
-            } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/WebhookEndpoint"
+                      }
+                    }
+                  }
+                }
+              }
+            }
           },
-          "401": { "$ref": "#/components/responses/Problem" }
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          }
         }
       },
       "post": {
         "operationId": "createWebhookEndpoint",
-        "tags": ["Webhooks"],
-        "security": [{ "bearerAuth": [] }],
-        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/StoreWebhookEndpoint" } } } },
+        "tags": [
+          "Webhooks"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StoreWebhookEndpoint"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "Webhook endpoint and one-time signing secret",
-            "content": { "application/json": { "schema": {
-              "type": "object", "required": ["data"],
-              "properties": { "data": { "$ref": "#/components/schemas/CreatedWebhookEndpoint" } }
-            } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/CreatedWebhookEndpoint"
+                    }
+                  }
+                }
+              }
+            }
           },
-          "401": { "$ref": "#/components/responses/Problem" },
-          "422": { "$ref": "#/components/responses/ValidationProblem" }
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationProblem"
+          }
         }
       }
     },
     "/v1/webhook-endpoints/{webhook}": {
-      "parameters": [{ "name": "webhook", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }],
+      "parameters": [
+        {
+          "name": "webhook",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      ],
       "patch": {
         "operationId": "updateWebhookEndpoint",
-        "tags": ["Webhooks"],
-        "security": [{ "bearerAuth": [] }],
-        "requestBody": { "required": true, "content": { "application/json": { "schema": { "$ref": "#/components/schemas/UpdateWebhookEndpoint" } } } },
+        "tags": [
+          "Webhooks"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateWebhookEndpoint"
+              }
+            }
+          }
+        },
         "responses": {
-          "200": { "description": "Updated webhook endpoint", "content": { "application/json": { "schema": { "type": "object", "properties": { "data": { "$ref": "#/components/schemas/WebhookEndpoint" } } } } } },
-          "401": { "$ref": "#/components/responses/Problem" },
-          "404": { "$ref": "#/components/responses/Problem" },
-          "422": { "$ref": "#/components/responses/ValidationProblem" }
+          "200": {
+            "description": "Updated webhook endpoint",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/WebhookEndpoint"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "422": {
+            "$ref": "#/components/responses/ValidationProblem"
+          }
         }
       },
       "delete": {
         "operationId": "deleteWebhookEndpoint",
-        "tags": ["Webhooks"],
-        "security": [{ "bearerAuth": [] }],
+        "tags": [
+          "Webhooks"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "responses": {
-          "204": { "description": "Webhook endpoint deleted" },
-          "401": { "$ref": "#/components/responses/Problem" },
-          "404": { "$ref": "#/components/responses/Problem" }
+          "204": {
+            "description": "Webhook endpoint deleted"
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          }
         }
       }
     },
     "/v1/webhook-deliveries/{delivery}/replay": {
       "post": {
         "operationId": "replayWebhookDelivery",
-        "tags": ["Webhooks"],
-        "security": [{ "bearerAuth": [] }],
-        "parameters": [{ "name": "delivery", "in": "path", "required": true, "schema": { "type": "string", "format": "uuid" } }],
+        "tags": [
+          "Webhooks"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "delivery",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Delivery reset to pending",
-            "content": { "application/json": { "schema": {
-              "type": "object",
-              "properties": { "data": { "type": "object", "required": ["delivery_id", "status"], "properties": {
-                "delivery_id": { "type": "string", "format": "uuid" },
-                "status": { "type": "string", "const": "pending" }
-              } } }
-            } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "required": [
+                        "delivery_id",
+                        "status"
+                      ],
+                      "properties": {
+                        "delivery_id": {
+                          "type": "string",
+                          "format": "uuid"
+                        },
+                        "status": {
+                          "type": "string",
+                          "const": "pending"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
           },
-          "401": { "$ref": "#/components/responses/Problem" },
-          "404": { "$ref": "#/components/responses/Problem" }
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "404": {
+            "$ref": "#/components/responses/Problem"
+          }
         }
       }
     },
     "/v1/admin/reconciliation/runs": {
       "get": {
         "operationId": "listReconciliationRuns",
-        "tags": ["Reconciliation"],
-        "security": [{ "bearerAuth": [] }],
+        "tags": [
+          "Reconciliation"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
         "responses": {
-          "200": { "description": "Latest reconciliation reports", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ReconciliationReportPage" } } } },
-          "401": { "$ref": "#/components/responses/Problem" },
-          "403": { "$ref": "#/components/responses/Problem" }
+          "200": {
+            "description": "Latest reconciliation reports",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReconciliationReportPage"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Problem"
+          },
+          "403": {
+            "$ref": "#/components/responses/Problem"
+          }
         }
       }
     }
@@ -489,7 +1008,10 @@
     "headers": {
       "RequestId": {
         "description": "UUID used to correlate this request",
-        "schema": { "type": "string", "format": "uuid" }
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
       }
     },
     "parameters": {
@@ -497,7 +1019,10 @@
         "name": "account",
         "in": "path",
         "required": true,
-        "schema": { "type": "string", "format": "uuid" }
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
       },
       "IdempotencyKey": {
         "name": "Idempotency-Key",
@@ -514,19 +1039,31 @@
     "responses": {
       "Problem": {
         "description": "Problem Details error",
-        "headers": { "X-Request-Id": { "$ref": "#/components/headers/RequestId" } },
+        "headers": {
+          "X-Request-Id": {
+            "$ref": "#/components/headers/RequestId"
+          }
+        },
         "content": {
           "application/problem+json": {
-            "schema": { "$ref": "#/components/schemas/ProblemDetails" }
+            "schema": {
+              "$ref": "#/components/schemas/ProblemDetails"
+            }
           }
         }
       },
       "ValidationProblem": {
         "description": "Request validation failed",
-        "headers": { "X-Request-Id": { "$ref": "#/components/headers/RequestId" } },
+        "headers": {
+          "X-Request-Id": {
+            "$ref": "#/components/headers/RequestId"
+          }
+        },
         "content": {
           "application/problem+json": {
-            "schema": { "$ref": "#/components/schemas/ValidationProblemDetails" }
+            "schema": {
+              "$ref": "#/components/schemas/ValidationProblemDetails"
+            }
           }
         }
       }
@@ -535,169 +1072,446 @@
       "RegisterRequest": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["name", "email", "password", "password_confirmation"],
+        "required": [
+          "name",
+          "email",
+          "password",
+          "password_confirmation"
+        ],
         "properties": {
-          "name": { "type": "string", "maxLength": 255 },
-          "email": { "type": "string", "format": "email", "maxLength": 255 },
-          "password": { "type": "string", "format": "password" },
-          "password_confirmation": { "type": "string", "format": "password" }
+          "name": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 255
+          },
+          "password": {
+            "type": "string",
+            "format": "password"
+          },
+          "password_confirmation": {
+            "type": "string",
+            "format": "password"
+          }
         }
       },
       "LoginRequest": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["email", "password"],
+        "required": [
+          "email",
+          "password"
+        ],
         "properties": {
-          "email": { "type": "string", "format": "email" },
-          "password": { "type": "string", "format": "password" }
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "password": {
+            "type": "string",
+            "format": "password"
+          }
         }
       },
       "OpenAccountRequest": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["currency"],
+        "required": [
+          "currency"
+        ],
         "properties": {
-          "currency": { "type": "string", "pattern": "^[A-Z]{3}$", "examples": ["USD"] }
+          "currency": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$",
+            "examples": [
+              "USD"
+            ]
+          }
         }
       },
       "TransferRequest": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["from_account_id", "to_account_id", "amount", "currency"],
+        "required": [
+          "from_account_id",
+          "to_account_id",
+          "amount",
+          "currency"
+        ],
         "properties": {
-          "from_account_id": { "type": "string", "format": "uuid" },
-          "to_account_id": { "type": "string", "format": "uuid" },
-          "amount": { "type": "integer", "minimum": 1, "description": "Minor units" },
-          "currency": { "type": "string", "pattern": "^[A-Z]{3}$" },
-          "reference": { "type": ["string", "null"], "maxLength": 255 }
+          "from_account_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "to_account_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "amount": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Minor units"
+          },
+          "currency": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$"
+          },
+          "reference": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 255
+          }
         }
       },
       "CashMovementRequest": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["account_id", "amount", "currency"],
+        "required": [
+          "account_id",
+          "amount",
+          "currency"
+        ],
         "properties": {
-          "account_id": { "type": "string", "format": "uuid" },
-          "amount": { "type": "integer", "minimum": 1, "description": "Minor units" },
-          "currency": { "type": "string", "pattern": "^[A-Z]{3}$" }
+          "account_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "amount": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Minor units"
+          },
+          "currency": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$"
+          }
         }
       },
       "User": {
         "type": "object",
-        "required": ["id", "name", "email"],
+        "required": [
+          "id",
+          "name",
+          "email"
+        ],
         "properties": {
-          "id": { "type": "string", "format": "uuid" },
-          "name": { "type": "string" },
-          "email": { "type": "string", "format": "email" },
-          "role": { "type": "string", "enum": ["user", "admin", "service"] }
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "user",
+              "admin",
+              "service"
+            ]
+          }
         }
       },
       "TokenGrant": {
         "type": "object",
-        "required": ["data", "token"],
+        "required": [
+          "data",
+          "token"
+        ],
         "properties": {
-          "data": { "$ref": "#/components/schemas/User" },
-          "token": { "type": "string" }
+          "data": {
+            "$ref": "#/components/schemas/User"
+          },
+          "token": {
+            "type": "string"
+          }
         }
       },
       "Account": {
         "type": "object",
-        "required": ["id", "type", "currency", "status"],
+        "required": [
+          "id",
+          "type",
+          "currency",
+          "status"
+        ],
         "properties": {
-          "id": { "type": "string", "format": "uuid" },
-          "type": { "type": "string", "const": "user_wallet" },
-          "currency": { "type": "string", "pattern": "^[A-Z]{3}$" },
-          "status": { "type": "string", "enum": ["active", "frozen", "closed"] }
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "type": {
+            "type": "string",
+            "const": "user_wallet"
+          },
+          "currency": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "frozen",
+              "closed"
+            ]
+          }
         }
       },
       "OpenedAccount": {
         "allOf": [
-          { "$ref": "#/components/schemas/Account" },
+          {
+            "$ref": "#/components/schemas/Account"
+          },
           {
             "type": "object",
-            "required": ["balance"],
-            "properties": { "balance": { "type": "integer", "description": "Minor units" } }
+            "required": [
+              "balance"
+            ],
+            "properties": {
+              "balance": {
+                "type": "integer",
+                "description": "Minor units"
+              }
+            }
           }
         ]
       },
       "AccountBalance": {
         "type": "object",
-        "required": ["account_id", "currency", "balance"],
+        "required": [
+          "account_id",
+          "currency",
+          "balance"
+        ],
         "properties": {
-          "account_id": { "type": "string", "format": "uuid" },
-          "currency": { "type": "string", "pattern": "^[A-Z]{3}$" },
-          "balance": { "type": "integer", "description": "Minor units" }
+          "account_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "currency": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$"
+          },
+          "balance": {
+            "type": "integer",
+            "description": "Minor units"
+          }
         }
       },
       "StatementEntry": {
         "type": "object",
-        "required": ["id", "transaction_id", "direction", "amount", "currency", "balance_after", "created_at"],
+        "required": [
+          "id",
+          "transaction_id",
+          "direction",
+          "amount",
+          "currency",
+          "balance_after",
+          "created_at"
+        ],
         "properties": {
-          "id": { "type": "string", "format": "uuid" },
-          "transaction_id": { "type": "string", "format": "uuid" },
-          "direction": { "type": "string", "enum": ["debit", "credit"] },
-          "amount": { "type": "integer", "minimum": 1, "description": "Minor units" },
-          "currency": { "type": "string", "pattern": "^[A-Z]{3}$" },
-          "balance_after": { "type": "integer", "description": "Minor units" },
-          "created_at": { "type": "string", "format": "date-time" }
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "transaction_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "direction": {
+            "type": "string",
+            "enum": [
+              "debit",
+              "credit"
+            ]
+          },
+          "amount": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Minor units"
+          },
+          "currency": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$"
+          },
+          "balance_after": {
+            "type": "integer",
+            "description": "Minor units"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
         }
       },
       "StatementPage": {
         "type": "object",
-        "required": ["data", "meta"],
+        "required": [
+          "data",
+          "meta"
+        ],
         "properties": {
-          "data": { "type": "array", "items": { "$ref": "#/components/schemas/StatementEntry" } },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StatementEntry"
+            }
+          },
           "meta": {
             "type": "object",
-            "required": ["next_cursor"],
-            "properties": { "next_cursor": { "type": ["string", "null"] } }
+            "required": [
+              "next_cursor"
+            ],
+            "properties": {
+              "next_cursor": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
           }
         }
       },
       "PostedTransfer": {
         "type": "object",
-        "required": ["transaction_id", "from_account_id", "to_account_id", "amount", "currency", "status"],
+        "required": [
+          "transaction_id",
+          "from_account_id",
+          "to_account_id",
+          "amount",
+          "currency",
+          "status"
+        ],
         "properties": {
-          "transaction_id": { "type": "string", "format": "uuid" },
-          "from_account_id": { "type": "string", "format": "uuid" },
-          "to_account_id": { "type": "string", "format": "uuid" },
-          "amount": { "type": "integer", "minimum": 1, "description": "Minor units" },
-          "currency": { "type": "string", "pattern": "^[A-Z]{3}$" },
-          "status": { "type": "string", "const": "posted" }
+          "transaction_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "from_account_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "to_account_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "amount": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Minor units"
+          },
+          "currency": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$"
+          },
+          "status": {
+            "type": "string",
+            "const": "posted"
+          }
         }
       },
       "PostedCashMovement": {
         "type": "object",
-        "required": ["transaction_id", "account_id", "amount", "currency", "status", "provider_reference"],
+        "required": [
+          "transaction_id",
+          "account_id",
+          "amount",
+          "currency",
+          "status",
+          "provider_reference"
+        ],
         "properties": {
-          "transaction_id": { "type": "string", "format": "uuid" },
-          "account_id": { "type": "string", "format": "uuid" },
-          "amount": { "type": "integer", "minimum": 1, "description": "Minor units" },
-          "currency": { "type": "string", "pattern": "^[A-Z]{3}$" },
-          "status": { "type": "string", "const": "posted" },
-          "provider_reference": { "type": "string" }
+          "transaction_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "account_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "amount": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Minor units"
+          },
+          "currency": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$"
+          },
+          "status": {
+            "type": "string",
+            "const": "posted"
+          },
+          "provider_reference": {
+            "type": "string"
+          }
         }
       },
       "PostedReversal": {
         "type": "object",
-        "required": ["transaction_id", "reversal_of", "status"],
+        "required": [
+          "transaction_id",
+          "reversal_of",
+          "status"
+        ],
         "properties": {
-          "transaction_id": { "type": "string", "format": "uuid" },
-          "reversal_of": { "type": "string", "format": "uuid" },
-          "status": { "type": "string", "const": "posted" }
+          "transaction_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "reversal_of": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string",
+            "const": "posted"
+          }
         }
       },
       "WebhookEventType": {
         "type": "string",
-        "enum": ["transfer.completed", "deposit.completed", "withdrawal.completed", "reversal.completed", "fee.completed", "conversion.completed"]
+        "enum": [
+          "transfer.completed",
+          "deposit.completed",
+          "withdrawal.completed",
+          "reversal.completed",
+          "fee.completed",
+          "conversion.completed"
+        ]
       },
       "StoreWebhookEndpoint": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["url", "events"],
+        "required": [
+          "url",
+          "events"
+        ],
         "properties": {
-          "url": { "type": "string", "format": "uri", "maxLength": 2048 },
-          "events": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "$ref": "#/components/schemas/WebhookEventType" } }
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "maxLength": 2048
+          },
+          "events": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "$ref": "#/components/schemas/WebhookEventType"
+            }
+          }
         }
       },
       "UpdateWebhookEndpoint": {
@@ -705,83 +1519,335 @@
         "additionalProperties": false,
         "minProperties": 1,
         "properties": {
-          "url": { "type": "string", "format": "uri", "maxLength": 2048 },
-          "events": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "$ref": "#/components/schemas/WebhookEventType" } },
-          "is_active": { "type": "boolean" }
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "maxLength": 2048
+          },
+          "events": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "$ref": "#/components/schemas/WebhookEventType"
+            }
+          },
+          "is_active": {
+            "type": "boolean"
+          }
         }
       },
       "WebhookEndpoint": {
         "type": "object",
-        "required": ["id", "url", "events", "is_active", "created_at"],
+        "required": [
+          "id",
+          "url",
+          "events",
+          "is_active",
+          "created_at"
+        ],
         "properties": {
-          "id": { "type": "string", "format": "uuid" },
-          "url": { "type": "string", "format": "uri" },
-          "events": { "type": "array", "items": { "$ref": "#/components/schemas/WebhookEventType" } },
-          "is_active": { "type": "boolean" },
-          "created_at": { "type": "string", "format": "date-time" }
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WebhookEventType"
+            }
+          },
+          "is_active": {
+            "type": "boolean"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
         }
       },
       "CreatedWebhookEndpoint": {
         "allOf": [
-          { "$ref": "#/components/schemas/WebhookEndpoint" },
-          { "type": "object", "required": ["signing_secret"], "properties": { "signing_secret": { "type": "string", "writeOnly": true } } }
-        ]
-      },
-      "ReconciliationDiscrepancy": {
-        "type": "object",
-        "required": ["id", "kind", "account_id", "expected", "actual", "details"],
-        "properties": {
-          "id": { "type": "string", "format": "uuid" },
-          "kind": { "type": "string", "enum": ["currency_imbalance", "account_balance_mismatch", "balance_sequence_mismatch", "transaction_imbalance", "stale_outbox_event"] },
-          "account_id": { "type": ["string", "null"], "format": "uuid" },
-          "expected": { "type": "integer" },
-          "actual": { "type": "integer" },
-          "details": { "type": "object", "additionalProperties": true }
-        }
-      },
-      "ReconciliationRun": {
-        "type": "object",
-        "required": ["id", "status", "summary", "started_at", "finished_at", "discrepancies"],
-        "properties": {
-          "id": { "type": "string", "format": "uuid" },
-          "status": { "type": "string", "enum": ["running", "clean", "discrepancies", "failed"] },
-          "summary": { "type": "object", "additionalProperties": true },
-          "started_at": { "type": "string", "format": "date-time" },
-          "finished_at": { "type": ["string", "null"], "format": "date-time" },
-          "discrepancies": { "type": "array", "items": { "$ref": "#/components/schemas/ReconciliationDiscrepancy" } }
-        }
-      },
-      "ReconciliationReportPage": {
-        "type": "object",
-        "required": ["data"],
-        "properties": { "data": { "type": "array", "items": { "$ref": "#/components/schemas/ReconciliationRun" } } }
-      },
-      "ProblemDetails": {
-        "type": "object",
-        "required": ["type", "title", "status", "detail", "instance", "request_id"],
-        "properties": {
-          "type": { "type": "string", "format": "uri-reference" },
-          "title": { "type": "string" },
-          "status": { "type": "integer", "minimum": 400, "maximum": 599 },
-          "detail": { "type": "string" },
-          "instance": { "type": "string", "format": "uri-reference" },
-          "request_id": { "type": "string", "format": "uuid" }
-        }
-      },
-      "ValidationProblemDetails": {
-        "allOf": [
-          { "$ref": "#/components/schemas/ProblemDetails" },
+          {
+            "$ref": "#/components/schemas/WebhookEndpoint"
+          },
           {
             "type": "object",
-            "required": ["errors"],
+            "required": [
+              "signing_secret"
+            ],
             "properties": {
-              "errors": {
-                "type": "object",
-                "additionalProperties": { "type": "array", "items": { "type": "string" } }
+              "signing_secret": {
+                "type": "string",
+                "writeOnly": true
               }
             }
           }
         ]
+      },
+      "ReconciliationDiscrepancy": {
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "account_id",
+          "expected",
+          "actual",
+          "details"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "currency_imbalance",
+              "account_balance_mismatch",
+              "balance_sequence_mismatch",
+              "transaction_imbalance",
+              "stale_outbox_event"
+            ]
+          },
+          "account_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "expected": {
+            "type": "integer"
+          },
+          "actual": {
+            "type": "integer"
+          },
+          "details": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      },
+      "ReconciliationRun": {
+        "type": "object",
+        "required": [
+          "id",
+          "status",
+          "summary",
+          "started_at",
+          "finished_at",
+          "discrepancies"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "running",
+              "clean",
+              "discrepancies",
+              "failed"
+            ]
+          },
+          "summary": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "finished_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "discrepancies": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReconciliationDiscrepancy"
+            }
+          }
+        }
+      },
+      "ReconciliationReportPage": {
+        "type": "object",
+        "required": [
+          "data"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReconciliationRun"
+            }
+          }
+        }
+      },
+      "ProblemDetails": {
+        "type": "object",
+        "required": [
+          "type",
+          "title",
+          "status",
+          "detail",
+          "instance",
+          "request_id"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "format": "uri-reference"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer",
+            "minimum": 400,
+            "maximum": 599
+          },
+          "detail": {
+            "type": "string"
+          },
+          "instance": {
+            "type": "string",
+            "format": "uri-reference"
+          },
+          "request_id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "ValidationProblemDetails": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ProblemDetails"
+          },
+          {
+            "type": "object",
+            "required": [
+              "errors"
+            ],
+            "properties": {
+              "errors": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "ConversionRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "from_account_id",
+          "to_account_id",
+          "amount",
+          "from_currency",
+          "to_currency"
+        ],
+        "properties": {
+          "from_account_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "to_account_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "amount": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Input minor units"
+          },
+          "from_currency": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$"
+          },
+          "to_currency": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$"
+          },
+          "reference": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 255
+          }
+        }
+      },
+      "PostedConversion": {
+        "type": "object",
+        "required": [
+          "transaction_id",
+          "from_account_id",
+          "to_account_id",
+          "input_amount",
+          "input_currency",
+          "output_amount",
+          "output_currency",
+          "exchange_rate",
+          "status"
+        ],
+        "properties": {
+          "transaction_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "from_account_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "to_account_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "input_amount": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Input minor units"
+          },
+          "input_currency": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$"
+          },
+          "output_amount": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "Rounded output minor units"
+          },
+          "output_currency": {
+            "type": "string",
+            "pattern": "^[A-Z]{3}$"
+          },
+          "exchange_rate": {
+            "type": "string",
+            "pattern": "^[0-9]+\\.[0-9]{10}$"
+          },
+          "status": {
+            "type": "string",
+            "const": "posted"
+          }
+        }
       }
     }
   }

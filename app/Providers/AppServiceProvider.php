@@ -8,6 +8,7 @@ use App\Application\Account\Port\AccountReader;
 use App\Application\Account\Port\AccountStore;
 use App\Application\Account\Port\SystemAccountStore;
 use App\Application\Cash\Port\CashOperationStore;
+use App\Application\Conversion\Port\ConversionStore;
 use App\Application\Currency\Port\ExchangeRateProvider;
 use App\Application\Fee\Port\FeeStore;
 use App\Application\Idempotency\Port\IdempotencyExecutor;
@@ -30,6 +31,7 @@ use App\Infrastructure\Account\PostgresAccountReader;
 use App\Infrastructure\Account\PostgresAccountStore;
 use App\Infrastructure\Account\PostgresSystemAccountStore;
 use App\Infrastructure\Cash\PostgresCashOperationStore;
+use App\Infrastructure\Conversion\PostgresConversionStore;
 use App\Infrastructure\Currency\CachedExchangeRateProvider;
 use App\Infrastructure\Currency\FakeExchangeRateProvider;
 use App\Infrastructure\Fee\PostgresFeeStore;
@@ -70,6 +72,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(AccountStore::class, PostgresAccountStore::class);
         $this->app->bind(SystemAccountStore::class, PostgresSystemAccountStore::class);
         $this->app->bind(CashOperationStore::class, PostgresCashOperationStore::class);
+        $this->app->bind(ConversionStore::class, PostgresConversionStore::class);
         $this->app->bind(ExchangeRateProvider::class, static function (Application $app): ExchangeRateProvider {
             $cache = $app->make(CacheFactory::class)->store();
 

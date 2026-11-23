@@ -20,13 +20,15 @@ final class PostgresLedgerStore implements LedgerStore
 {
     public function __construct(private readonly OutboxWriter $outbox) {}
 
+    /** @param array<string, mixed> $metadata */
     public function post(
         Posting $posting,
         LedgerTransactionType $type,
         ?string $reference = null,
         ?string $reversalOf = null,
+        array $metadata = [],
     ): string {
-        return DB::transaction(function () use ($posting, $type, $reference, $reversalOf): string {
+        return DB::transaction(function () use ($posting, $type, $reference, $reversalOf, $metadata): string {
             /** @var list<JournalEntry> $entries */
             $entries = $posting->entries();
             $accountIds = array_values(array_unique(array_map(
@@ -101,6 +103,7 @@ final class PostgresLedgerStore implements LedgerStore
                 'status' => 'posted',
                 'reversal_of' => $reversalOf,
                 'reference' => $reference,
+                'metadata' => json_encode($metadata, JSON_THROW_ON_ERROR),
             ]);
 
             DB::table('ledger_entries')->insert($ledgerEntries);

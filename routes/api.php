@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CashMovementController;
+use App\Http\Controllers\ConversionController;
 use App\Http\Controllers\ReconciliationController;
 use App\Http\Controllers\ReversalController;
 use App\Http\Controllers\TransferController;
@@ -32,6 +33,8 @@ Route::get('/v1/accounts/{account}/entries', [AccountController::class, 'entries
     ->middleware('auth:sanctum');
 
 Route::post('/v1/transfers', [TransferController::class, 'store'])
+    ->middleware('auth:sanctum');
+Route::post('/v1/conversions', [ConversionController::class, 'store'])
     ->middleware('auth:sanctum');
 Route::post('/v1/deposits', [CashMovementController::class, 'deposit'])
     ->middleware('auth:sanctum');

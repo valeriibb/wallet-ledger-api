@@ -34,7 +34,8 @@
 - Фаза 7, крок 7.2 — завершено: chaos test виявляє навмисне пошкодження cached balance та зберігає evidence без automatic repair.
 - Фаза 7 повністю завершена.
 - Фаза 8, крок 8.1 — завершено: exact exchange rates, fake provider, five-minute cache, persisted snapshots, half-up rounding і ADR-0010 реалізовані.
-- Наступний крок: 8.2 — atomic `ConvertCurrency` use case з чотирма ledger entries і rounding metadata.
+- Фаза 8, крок 8.2 — завершено: atomic `ConvertCurrency`, чотири ledger entries, idempotency та rounding metadata реалізовані.
+- Фаза 8 повністю завершена; наступний крок: 9.1 — k6 load scenarios.
 - Створено окремий Git-репозиторій і базову структуру документації.
 - `PLAN.md` містить майстер-план.
 - `AGENTS.md` містить правила роботи та опис продукту з розділів 0 і 1 плану.
@@ -184,6 +185,12 @@
 - Round-half-up rule перевірено на boundary: 92.5 minor units стає 93; rate snapshots зберігаються в `exchange_rates` для investigation.
 - ADR-0010 фіксує exact decimal rates, one-time rounding, cache та майбутній облік rounding difference через system FX accounts.
 - Повні перевірки після кроку 8.1: PHPUnit — 149 тестів, 145 952 assertions; PHPStan max — 0 помилок; Pint — 221 файл.
+- Додано `POST /v1/conversions`, `ConvertCurrency` application service, `ConversionStore` port і `PostgresConversionStore` adapter.
+- Конвертація створює одну atomic ledger transaction із чотирма entries: user debit / FX credit у source currency та FX debit / user credit у target currency.
+- Обидва user wallets мають належати authenticated owner; чотири account rows і balances блокуються в deterministic UUID order, а insufficient funds відкочує всю операцію.
+- Ledger metadata зберігає exact rate, source, valid-from, exact і rounded output, half-up rule та signed fractional rounding difference; integer legs балансуються окремо через system FX accounts.
+- `Idempotency-Key` replay повертає stored response без повторного руху коштів; endpoint і schemas додано до OpenAPI 3.1, рішення зафіксовано в ADR-0011.
+- Повні перевірки після Phase 8: PHPUnit — 153 тести, 145 993 assertions; PHPStan max — 0 помилок; Pint — 234 файли.
 
 ## Версії
 - PHP 8.4
@@ -191,7 +198,7 @@
 - PostgreSQL 18.x
 
 ## Відкладено
-- Крок 8.2 та фаза 9 roadmap ще не починалися.
+- Фаза 9 roadmap ще не починалася.
 - Docker Desktop на цьому Mac: 4.99.0; Docker Engine: 29.9.3; Docker Compose: v5.7.0.
 
 ## Відкриті питання

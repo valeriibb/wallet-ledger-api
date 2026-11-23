@@ -409,7 +409,7 @@ Body: { from_account_id, to_account_id, amount, currency, reference? }
 
 ### Фаза 8 — Конвертація валют (4–5 днів)
 - [x] 8.1 Курси (fake provider + кеш), правила округлення, ADR.
-- [ ] 8.2 Use-case `ConvertCurrency` (4 проводки).
+- [x] 8.2 Use-case `ConvertCurrency` (4 проводки).
 - **DoD:** I1 виконується по кожній валюті окремо; rounding dust відстежується.
 
 ### Фаза 9 — Продуктивність (1 тиждень)
