@@ -57,6 +57,33 @@ final class ReconciliationTest extends TestCase
         self::assertDatabaseHas('outbox_events', ['id' => $eventId, 'published_at' => null]);
     }
 
+    #[Test]
+    public function chaos_corruption_of_a_cached_balance_is_detected_but_not_repaired(): void
+    {
+        $this->postBalancedTransaction();
+        $accountId = DB::table('accounts')->where('type', 'system_fees')->value('id');
+        self::assertIsString($accountId);
+        DB::table('account_balances')->where('account_id', $accountId)->update(['balance' => 101]);
+
+        $result = app(RunReconciliation::class)->execute();
+
+        self::assertSame('discrepancies', $result->status);
+        self::assertSame(1, $result->discrepancyCount);
+        self::assertSame(['account_balance_mismatch' => 1], $result->countsByKind);
+        self::assertDatabaseHas('reconciliation_discrepancies', [
+            'run_id' => $result->runId,
+            'kind' => 'account_balance_mismatch',
+            'account_id' => $accountId,
+            'expected' => 100,
+            'actual' => 101,
+        ]);
+        self::assertDatabaseHas('account_balances', [
+            'account_id' => $accountId,
+            'balance' => 101,
+        ]);
+        self::assertDatabaseCount('ledger_entries', 2);
+    }
+
     private function postBalancedTransaction(): string
     {
         $sourceId = $this->createSystemAccount('system_cash', true);
