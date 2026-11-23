@@ -9,5 +9,6 @@
         "text": "storage/logs/infection.log",
         "summary": "storage/logs/infection-summary.log"
     },
+    "testFrameworkExtraArgs": "--exclude-testsuite=Concurrency",
     "initialTestsPhpOptions": "-d pcov.enabled=1"
 }
