@@ -1,58 +1,115 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Wallet & Ledger API
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+[![CI](https://github.com/valeriibb/wallet-ledger-api/actions/workflows/ci.yml/badge.svg)](https://github.com/valeriibb/wallet-ledger-api/actions/workflows/ci.yml)
 
-## About Laravel
+A portfolio backend project for multi-currency wallets. I built it to practise the parts of financial systems that a normal CRUD project does not cover: immutable ledger entries, concurrent requests, idempotency, reliable events, reconciliation, and exact currency conversion.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Stack
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- PHP 8.4 and Laravel 13
+- PostgreSQL 18
+- Redis
+- Docker Compose and Nginx
+- PHPUnit, PHPStan, Laravel Pint, and Infection
+- GitHub Actions
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## What the API does
 
-## Learning Laravel
+- Sanctum registration and authentication
+- Wallet opening, balances, and cursor-paginated statements
+- Transfers, deposits, withdrawals, fees, and reversals
+- Multi-currency conversion with exact decimal rates and explicit rounding metadata
+- Idempotency keys for money-moving requests
+- Transactional outbox and signed webhook delivery
+- Retry, dead-letter, and manual webhook replay flows
+- Reconciliation reports that detect corrupted balances and stale events
+- RFC 9457 Problem Details and request IDs
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+The complete HTTP contract is in [`docs/openapi.json`](docs/openapi.json).
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Architecture
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+The domain layer contains money and ledger rules without Laravel dependencies. Application services depend on ports. PostgreSQL, Redis, HTTP, and Laravel code live in adapters and are connected in the service provider.
 
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
-
-```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+```mermaid
+flowchart LR
+    HTTP[HTTP controllers] --> APP[Application services]
+    APP --> DOMAIN[Domain model]
+    APP --> PORTS[Ports]
+    ADAPTERS[PostgreSQL / Redis / HTTP adapters] --> PORTS
+    ADAPTERS --> DB[(PostgreSQL)]
+    ADAPTERS --> CACHE[(Redis)]
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Example:
 
-## Contributing
+```text
+ConvertCurrency         -> application service
+ConversionStore         -> port
+PostgresConversionStore -> adapter
+AppServiceProvider      -> composition root
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Ledger model
 
-## Code of Conduct
+Money is stored as integer minor units. Ledger entries are immutable. Every transaction must balance separately in each currency.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+A USD to EUR conversion creates four entries in one database transaction:
 
-## Security Vulnerabilities
+```text
+USD: user wallet  --debit-->  system FX account
+EUR: system FX    --debit-->  user wallet
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+The exact rate, its source, validity time, rounded result, and fractional rounding difference are saved in transaction metadata.
 
-## License
+## Concurrency and failure handling
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+I chose ordered PostgreSQL `FOR UPDATE` locks because balances must be checked and changed atomically. Accounts are locked in UUID order to reduce deadlocks. PostgreSQL serialization and deadlock errors receive a small bounded retry.
+
+An idempotency key and request hash prevent the same request from moving money twice. The stored response is committed with the ledger transaction.
+
+Events use a transactional outbox. A ledger change and its pending event commit together, so a worker crash cannot silently lose the event. Delivery is at least once; event IDs let consumers deduplicate.
+
+The decisions and rejected alternatives are documented in [`docs/adr`](docs/adr).
+
+## Run locally
+
+Requirements: Docker Desktop and Docker Compose.
+
+```bash
+git clone https://github.com/valeriibb/wallet-ledger-api.git
+cd wallet-ledger-api
+cp .env.example .env
+docker compose up -d --build
+docker compose exec php composer install
+docker compose exec php php artisan key:generate
+docker compose exec php php artisan migrate
+```
+
+The API is available at `http://127.0.0.1:8080`.
+
+Mailpit is available at `http://127.0.0.1:8025`.
+
+## Quality checks
+
+```bash
+make test
+make test-concurrency
+make lint
+make analyse
+make mutate
+```
+
+Current suite: **153 tests and 145,993 assertions**, including real PostgreSQL concurrency, process-crash, property-style, integration, feature, and architecture tests.
+
+CI runs formatting, PHPStan at maximum level, migrations, PHPUnit, and the Money mutation score on every push and pull request.
+
+## Main design notes
+
+- [`ADR 0003 - Ledger store`](docs/adr/0003-ledger-store.md)
+- [`ADR 0005 - Transfer isolation and locking`](docs/adr/0005-transfer-isolation-and-locking.md)
+- [`ADR 0006 - Idempotency`](docs/adr/0006-idempotency.md)
+- [`ADR 0007 - Transactional outbox`](docs/adr/0007-transactional-outbox.md)
+- [`ADR 0010 - Exchange-rate rounding`](docs/adr/0010-exchange-rate-rounding.md)
+- [`ADR 0011 - Atomic currency conversion`](docs/adr/0011-atomic-currency-conversion.md)
